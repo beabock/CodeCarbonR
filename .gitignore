@@ -9,6 +9,7 @@ emissions.csv
 /Meta/
 comparison/**/r_output/
 comparison/**/py_output/
+comparison/**/shared_data.csv
 comparison/**/*_files/
 comparison/**/*_cache/
 comparison/**/*.html

@@ -17,15 +17,16 @@ of case 01's environment; `LinearRegression` is an ordinary-least-squares
 fit like `lm()`, so this is a direct analog rather than a different
 estimation method.
 
-As with the other synthetic-data cases, R's and Python's RNGs aren't
-bit-compatible, so this validates sane-range numbers for a modeling-shaped
-workload, not an exact match between the two runs.
+The predictors and response are generated once (below) and written to
+`shared_data.csv`, which both chunks read, rather than each side
+generating its own with a matching seed -- R's and Python's RNGs aren't
+bit-compatible, so "the same" seed wouldn't actually produce the same
+values. `shared_data.csv` is generated fresh on every render and
+gitignored.
 
-## R run
+## Shared data
 
 ```{r}
-library(CodeCarbonR)
-
 set.seed(42)
 n <- 50000
 p <- 10
@@ -33,8 +34,17 @@ x <- matrix(rnorm(n * p), nrow = n)
 colnames(x) <- paste0("x", seq_len(p))
 beta <- rnorm(p)
 y <- as.vector(x %*% beta + rnorm(n, sd = 2))
-data <- as.data.frame(x)
-data$y <- y
+shared <- as.data.frame(x)
+shared$y <- y
+write.csv(shared, "shared_data.csv", row.names = FALSE)
+```
+
+## R run
+
+```{r}
+library(CodeCarbonR)
+
+data <- read.csv("shared_data.csv")
 
 result <- with_emissions_tracked(
   {
@@ -53,18 +63,16 @@ result
 
 ```{python}
 import os
-import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 from codecarbon import OfflineEmissionsTracker
 
 os.makedirs("py_output", exist_ok=True)
 
-np.random.seed(42)
-n = 50_000
-p = 10
-X = np.random.normal(size=(n, p))
-beta = np.random.normal(size=p)
-y = X @ beta + np.random.normal(scale=2, size=n)
+data = pd.read_csv("shared_data.csv")
+feature_cols = [c for c in data.columns if c != "y"]
+X = data[feature_cols]
+y = data["y"]
 
 with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
     model = LinearRegression()

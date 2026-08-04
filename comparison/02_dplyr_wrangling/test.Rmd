@@ -11,25 +11,25 @@ reticulate::use_condaenv("r-codecarbon", required = TRUE)
 
 A short-running, CPU-only, small in-memory data wrangling pipeline. No
 CodeCarbon example to mirror directly (its own examples are ML-focused),
-so this is paired against an equivalent pandas pipeline instead. Generates
-a synthetic 200,000-row sales table, then runs a
-group_by/summarize/join/pivot chain: aggregate revenue by region and
-category, join in a small tax-rate lookup table, then pivot categories out
-into columns. R side uses `dplyr`/`tidyr`, Python side uses pandas
-groupby/merge/pivot doing the same transformations.
+so this is paired against an equivalent pandas pipeline instead. Runs a
+group_by/summarize/join/pivot chain over a synthetic 200,000-row sales
+table: aggregate revenue by region and category, join in a small tax-rate
+lookup table, then pivot categories out into columns. R side uses
+`dplyr`/`tidyr`, Python side uses pandas groupby/merge/pivot doing the
+same transformations.
 
-As with case 01, the two languages' RNGs aren't bit-compatible, so the
-generated data isn't identical between sides, just the same shape and
-distribution; this validates that reported numbers are in a sane range
-for a wrangling-shaped workload, not an exact duration match.
+The sales table is generated once (below) and written to
+`shared_data.csv`, which both the R and Python chunks read -- rather than
+each side generating its own with a matching seed, which wouldn't
+actually produce the same values since R's and Python's RNGs aren't
+bit-compatible. `shared_data.csv` is generated fresh on every render and
+gitignored. The tax-rate lookup table is small and fixed (not randomly
+generated), so it's just written out identically in both chunks rather
+than needing its own shared file.
 
-## R run
+## Shared data
 
 ```{r}
-library(CodeCarbonR)
-library(dplyr)
-library(tidyr)
-
 set.seed(42)
 n <- 200000
 regions <- c("North", "South", "East", "West")
@@ -41,8 +41,19 @@ sales <- data.frame(
   quantity = sample(1:10, n, replace = TRUE),
   price = round(runif(n, 5, 500), 2)
 )
+write.csv(sales, "shared_data.csv", row.names = FALSE)
+```
+
+## R run
+
+```{r}
+library(CodeCarbonR)
+library(dplyr)
+library(tidyr)
+
+sales <- read.csv("shared_data.csv", stringsAsFactors = FALSE)
 tax_rates <- data.frame(
-  region = regions,
+  region = c("North", "South", "East", "West"),
   tax_rate = c(0.07, 0.06, 0.08, 0.075)
 )
 
@@ -77,25 +88,14 @@ result
 
 ```{python}
 import os
-import numpy as np
 import pandas as pd
 from codecarbon import OfflineEmissionsTracker
 
 os.makedirs("py_output", exist_ok=True)
 
-np.random.seed(42)
-n = 200_000
-regions = ["North", "South", "East", "West"]
-categories = ["Electronics", "Grocery", "Apparel", "Home"]
-
-sales = pd.DataFrame({
-    "region": np.random.choice(regions, n),
-    "category": np.random.choice(categories, n),
-    "quantity": np.random.randint(1, 11, n),
-    "price": np.round(np.random.uniform(5, 500, n), 2),
-})
+sales = pd.read_csv("shared_data.csv")
 tax_rates = pd.DataFrame({
-    "region": regions,
+    "region": ["North", "South", "East", "West"],
     "tax_rate": [0.07, 0.06, 0.08, 0.075],
 })
 

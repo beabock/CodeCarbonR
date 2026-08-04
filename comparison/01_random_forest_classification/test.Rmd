@@ -15,14 +15,43 @@ https://docs.codecarbon.io/latest/how-to/scikit-learn/. This is the primary
 accuracy calibration case, since it's the closest direct analog between the
 two languages.
 
-Caveat: R's `ranger` and Python's `RandomForestClassifier` are different
-implementations and won't take identical wall-clock time even on
-equivalent data, so this validates that CodeCarbonR's reported numbers are
-in a sane range proportional to actual CPU work, not that duration matches
-exactly between the two runs. The synthetic data is also not bit-identical
-between languages (R doesn't have a drop-in equivalent of sklearn's
-`make_classification`); both use 1000 rows x 20 features with a
-linear-combination-plus-noise labeling rule.
+R's `ranger` and Python's `RandomForestClassifier` are still different
+implementations and won't take identical wall-clock time on identical
+data -- that part of the comparison validates that CodeCarbonR's reported
+numbers are in a sane range proportional to actual CPU work, not that
+duration matches exactly between the two runs.
+
+What *is* identical: the data and the train/test split. The block below
+generates the features, labels, and an `is_train` split assignment once,
+writes them to `shared_data.csv`, and both the R and Python chunks read
+that same file rather than each generating their own (R doesn't have a
+drop-in equivalent of sklearn's `make_classification`, and even with
+matching seeds R's and Python's RNGs don't produce the same values from
+them). This removes "is the data actually the same" as a variable, so any
+remaining divergence in reported numbers is attributable to the R vs.
+Python implementations and runtimes, not to the two sides quietly working
+from different inputs. `shared_data.csv` is generated fresh on every
+render and gitignored, not checked into the repo.
+
+## Shared data
+
+```{r}
+set.seed(42)
+n <- 1000
+p <- 20
+x <- matrix(rnorm(n * p), nrow = n)
+beta <- rnorm(p)
+linpred <- x %*% beta
+y <- as.integer(ifelse(linpred + rnorm(n) > median(linpred), 1, 0))
+train_idx <- sample(seq_len(n), size = 0.8 * n)
+is_train <- as.integer(seq_len(n) %in% train_idx)
+
+shared <- as.data.frame(x)
+names(shared) <- paste0("x", seq_len(p))
+shared$y <- y
+shared$is_train <- is_train
+write.csv(shared, "shared_data.csv", row.names = FALSE)
+```
 
 ## R run
 
@@ -30,19 +59,10 @@ linear-combination-plus-noise labeling rule.
 library(CodeCarbonR)
 library(ranger)
 
-set.seed(42)
-n <- 1000
-p <- 20
-x <- matrix(rnorm(n * p), nrow = n)
-beta <- rnorm(p)
-linpred <- x %*% beta
-y <- factor(ifelse(linpred + rnorm(n) > median(linpred), 1, 0))
-data <- as.data.frame(x)
-data$y <- y
-
-train_idx <- sample(seq_len(n), size = 0.8 * n)
-train_data <- data[train_idx, ]
-test_data <- data[-train_idx, ]
+shared <- read.csv("shared_data.csv")
+shared$y <- factor(shared$y)
+train_data <- shared[shared$is_train == 1, setdiff(names(shared), "is_train")]
+test_data <- shared[shared$is_train == 0, setdiff(names(shared), "is_train")]
 
 result <- with_emissions_tracked(
   {
@@ -62,14 +82,17 @@ result
 
 ```{python}
 import os
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from codecarbon import OfflineEmissionsTracker
 
 os.makedirs("py_output", exist_ok=True)
-X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+shared = pd.read_csv("shared_data.csv")
+feature_cols = [c for c in shared.columns if c not in ("y", "is_train")]
+train = shared[shared["is_train"] == 1]
+test = shared[shared["is_train"] == 0]
+X_train, y_train = train[feature_cols], train["y"]
+X_test, y_test = test[feature_cols], test["y"]
 
 with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
     model = RandomForestClassifier(n_estimators=100, random_state=42)
