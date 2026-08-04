@@ -1,6 +1,7 @@
 ^\.claude$
 ^comparison$
 ^\.github$
+^hpc$
 ^LICENSE\.md$
 ^CITATION\.cff$
 ^RELEASING\.md$

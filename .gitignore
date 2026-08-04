@@ -16,3 +16,4 @@ comparison/**/*.html
 comparison/**/*.md
 !comparison/README.md
 !comparison/coverage_matrix.md
+hpc/monsoon/logs/
