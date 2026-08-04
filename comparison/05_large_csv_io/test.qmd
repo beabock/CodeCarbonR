@@ -1,0 +1,43 @@
+---
+title: "large csv io"
+format: html
+---
+
+## Workload
+
+TODO: the large-file / I/O-bound case. Generate, write, read back, and
+aggregate a large CSV (target ~1 GB) to exercise disk I/O and rule out
+platform-specific file path or I/O handling bugs (this is the case most
+likely to expose Windows vs. Linux vs. Mac path issues). Needs a decision
+on whether the generated file is checked into the repo (no, too large),
+generated fresh each run, or downloaded from a fixed source.
+
+## R run
+
+```{r}
+# library(CodeCarbonR)
+#
+# result <- with_emissions_tracked(
+#   {
+#     # write large CSV, read it back, aggregate
+#   },
+#   country_iso_code = "USA",
+#   output_dir = "r_output"
+# )
+```
+
+## Python run
+
+```{python}
+# from codecarbon import OfflineEmissionsTracker
+#
+# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+#     pass  # equivalent write/read/aggregate
+```
+
+## Comparison
+
+```{r}
+# source("../_harness/compare_emissions.R")
+# compare_emissions(".")
+```

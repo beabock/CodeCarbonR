@@ -1,0 +1,82 @@
+---
+title: "random forest classification"
+format: html
+---
+
+## Workload
+
+Train a random forest classifier on a synthetic dataset (1000 rows, 20
+features), mirroring CodeCarbon's own scikit-learn documentation example:
+https://docs.codecarbon.io/latest/how-to/scikit-learn/. This is the primary
+accuracy calibration case, since it's the closest direct analog between the
+two languages.
+
+Caveat: R's `ranger` and Python's `RandomForestClassifier` are different
+implementations and won't take identical wall-clock time even on
+equivalent data, so this validates that CodeCarbonR's reported numbers are
+in a sane range proportional to actual CPU work, not that duration matches
+exactly between the two runs. The synthetic data is also not bit-identical
+between languages (R doesn't have a drop-in equivalent of sklearn's
+`make_classification`); both use 1000 rows x 20 features with a
+linear-combination-plus-noise labeling rule.
+
+## R run
+
+```{r}
+library(CodeCarbonR)
+library(ranger)
+
+set.seed(42)
+n <- 1000
+p <- 20
+x <- matrix(rnorm(n * p), nrow = n)
+beta <- rnorm(p)
+linpred <- x %*% beta
+y <- factor(ifelse(linpred + rnorm(n) > median(linpred), 1, 0))
+data <- as.data.frame(x)
+data$y <- y
+
+train_idx <- sample(seq_len(n), size = 0.8 * n)
+train_data <- data[train_idx, ]
+test_data <- data[-train_idx, ]
+
+result <- with_emissions_tracked(
+  {
+    model <- ranger(y ~ ., data = train_data, num.trees = 100)
+    predictions <- predict(model, test_data)$predictions
+    mean(predictions == test_data$y)
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+
+cat("Model accuracy:", round(result$result, 3), "\n")
+result
+```
+
+## Python run
+
+```{python}
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from codecarbon import OfflineEmissionsTracker
+
+X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    accuracy = model.score(X_test, y_test)
+
+print(f"Model accuracy: {accuracy:.3f}")
+print(f"Training emissions: {tracker.final_emissions:.6f} kg CO2eq")
+```
+
+## Comparison
+
+```{r}
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
+```

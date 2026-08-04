@@ -1,0 +1,49 @@
+---
+title: "gpu neural net"
+format: html
+---
+
+## Workload
+
+TODO: the GPU case, run on a cloud GPU instance rather than local hardware
+(confirm instance type/provider before building this out). Needs a
+framework decision: R `torch` package vs. Python PyTorch, or R `keras3` vs.
+Python TensorFlow/Keras. Train a small neural net for enough epochs that
+GPU utilization is sustained long enough for codecarbon's GPU sampling
+(via `pynvml`/`nvidia-smi`) to register meaningfully.
+
+Open question to confirm before building: does codecarbon's GPU tracking
+path work identically when called from R via reticulate as it does from
+native Python, or does anything about the reticulate boundary interfere
+with `pynvml` access? This case is as much about testing that as about the
+emissions numbers.
+
+## R run
+
+```{r}
+# library(CodeCarbonR)
+#
+# result <- with_emissions_tracked(
+#   {
+#     # neural net training loop
+#   },
+#   country_iso_code = "USA",
+#   output_dir = "r_output"
+# )
+```
+
+## Python run
+
+```{python}
+# from codecarbon import OfflineEmissionsTracker
+#
+# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+#     pass  # equivalent neural net training loop
+```
+
+## Comparison
+
+```{r}
+# source("../_harness/compare_emissions.R")
+# compare_emissions(".")
+```

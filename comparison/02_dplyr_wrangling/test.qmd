@@ -1,0 +1,44 @@
+---
+title: "dplyr wrangling"
+format: html
+---
+
+## Workload
+
+TODO: a short-running, CPU-only, small in-memory data wrangling pipeline.
+No CodeCarbon example to mirror directly; paired against an equivalent
+pandas pipeline. Candidate workload: read a small CSV (or built-in
+dataset), group_by/summarize/join/pivot chain, compare against pandas
+groupby/merge/pivot doing the same transformations.
+
+## R run
+
+```{r}
+# library(CodeCarbonR)
+# library(dplyr)
+#
+# result <- with_emissions_tracked(
+#   {
+#     # wrangling pipeline
+#   },
+#   country_iso_code = "USA",
+#   output_dir = "r_output"
+# )
+```
+
+## Python run
+
+```{python}
+# import pandas as pd
+# from codecarbon import OfflineEmissionsTracker
+#
+# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+#     pass  # wrangling pipeline
+```
+
+## Comparison
+
+```{r}
+# source("../_harness/compare_emissions.R")
+# compare_emissions(".")
+```

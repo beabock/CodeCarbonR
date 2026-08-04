@@ -1,0 +1,43 @@
+---
+title: "<test case name>"
+format: html
+---
+
+## Workload
+
+<one paragraph describing the workload and why it's in the suite>
+
+## R run
+
+```{r}
+library(CodeCarbonR)
+
+result <- with_emissions_tracked(
+  {
+    # workload goes here
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+result
+```
+
+## Python run
+
+```{python}
+from codecarbon import OfflineEmissionsTracker
+
+tracker = OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output")
+tracker.start()
+
+# same workload goes here
+
+tracker.stop()
+```
+
+## Comparison
+
+```{r}
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
+```

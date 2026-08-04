@@ -1,0 +1,40 @@
+---
+title: "linear model"
+format: html
+---
+
+## Workload
+
+TODO: a short-running, CPU-only, small in-memory statistical modeling
+case. Fit `lm()`/`glm()` on a synthetic or small built-in dataset, paired
+against `statsmodels` or `sklearn.linear_model` in Python.
+
+## R run
+
+```{r}
+# library(CodeCarbonR)
+#
+# result <- with_emissions_tracked(
+#   {
+#     # lm() / glm() fit
+#   },
+#   country_iso_code = "USA",
+#   output_dir = "r_output"
+# )
+```
+
+## Python run
+
+```{python}
+# from codecarbon import OfflineEmissionsTracker
+#
+# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+#     pass  # equivalent linear model fit
+```
+
+## Comparison
+
+```{r}
+# source("../_harness/compare_emissions.R")
+# compare_emissions(".")
+```

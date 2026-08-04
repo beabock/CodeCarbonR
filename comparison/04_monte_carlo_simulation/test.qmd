@@ -1,0 +1,43 @@
+---
+title: "monte carlo simulation"
+format: html
+---
+
+## Workload
+
+TODO: the long-running case. A loop-heavy stochastic simulation (thousands
+to millions of iterations, e.g. a bootstrap or random-walk process) with
+negligible memory footprint, to isolate CPU-time-driven emissions from
+data-size-driven emissions. Needs a target runtime decided (a few minutes,
+long enough that tracker sampling interval doesn't dominate the
+measurement).
+
+## R run
+
+```{r}
+# library(CodeCarbonR)
+#
+# result <- with_emissions_tracked(
+#   {
+#     # simulation loop
+#   },
+#   country_iso_code = "USA",
+#   output_dir = "r_output"
+# )
+```
+
+## Python run
+
+```{python}
+# from codecarbon import OfflineEmissionsTracker
+#
+# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+#     pass  # equivalent simulation loop
+```
+
+## Comparison
+
+```{r}
+# source("../_harness/compare_emissions.R")
+# compare_emissions(".")
+```

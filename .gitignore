@@ -3,3 +3,7 @@
 .RData
 .Ruserdata
 emissions.csv
+comparison/**/r_output/
+comparison/**/py_output/
+comparison/**/*_files/
+comparison/**/*.html
