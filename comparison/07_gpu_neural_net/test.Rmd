@@ -9,45 +9,124 @@ reticulate::use_condaenv("r-codecarbon", required = TRUE)
 
 ## Workload
 
-TODO: the GPU case, run on a cloud GPU instance rather than local hardware
-(confirm instance type/provider before building this out). Needs a
-framework decision: R `torch` package vs. Python PyTorch, or R `keras3` vs.
-Python TensorFlow/Keras. Train a small neural net for enough epochs that
-GPU utilization is sustained long enough for codecarbon's GPU sampling
-(via `pynvml`/`nvidia-smi`) to register meaningfully.
+**Status: built, not yet validated.** This case needs an actual GPU
+(ideally a cloud instance) to run meaningfully; the dev/CI environments
+this suite has been exercised in so far are CPU-only. The code below is
+complete and will run on CPU as a correctness check (falls back
+automatically), but that does not exercise what this case exists to test.
+Run it once on real GPU hardware and update `../coverage_matrix.md` to
+`validated` before relying on it for the paper's cross-platform claims.
 
-Open question to confirm before building: does codecarbon's GPU tracking
-path work identically when called from R via reticulate as it does from
-native Python, or does anything about the reticulate boundary interfere
-with `pynvml` access? This case is as much about testing that as about the
-emissions numbers.
+Framework: R `torch` vs Python `PyTorch`, not `keras3`/TensorFlow.
+`torch` in R binds directly to libtorch, the same C++ library PyTorch
+itself binds to, rather than routing through a separate Python backend
+via reticulate the way `keras3` would -- so this keeps the R and Python
+sides as two independent bindings to the same underlying engine, the same
+spirit as case 01 pairing `ranger` against `scikit-learn` rather than
+having one side call the other.
+
+Trains a small feedforward network (2 hidden layers) on synthetic
+regression data for 200 epochs, meant to be enough sustained GPU
+utilization for codecarbon's GPU sampling (`pynvml`/`nvidia-smi`) to
+register meaningfully -- increase `epochs` if a real run shows GPU power
+draw isn't registering above noise.
+
+Open question this case is meant to answer, not just the emissions
+numbers: does codecarbon's GPU tracking path work identically when called
+from R via `reticulate` as it does from native Python, or does anything
+about the reticulate boundary interfere with `pynvml` access? Watch the
+`gpu_power`/`gpu_energy` columns in `r_output/emissions.csv` specifically
+for that.
 
 ## R run
 
 ```{r}
-# library(CodeCarbonR)
-#
-# result <- with_emissions_tracked(
-#   {
-#     # neural net training loop
-#   },
-#   country_iso_code = "USA",
-#   output_dir = "r_output"
-# )
+library(CodeCarbonR)
+library(torch)
+
+set.seed(42)
+device <- if (cuda_is_available()) "cuda" else "cpu"
+
+n <- 5000
+p <- 50
+x <- torch_randn(n, p)
+true_w <- torch_randn(p, 1)
+y <- x$matmul(true_w) + torch_randn(n, 1) * 0.1
+x <- x$to(device = device)
+y <- y$to(device = device)
+
+model <- nn_sequential(
+  nn_linear(p, 64), nn_relu(),
+  nn_linear(64, 32), nn_relu(),
+  nn_linear(32, 1)
+)$to(device = device)
+
+optimizer <- optim_adam(model$parameters, lr = 0.001)
+
+result <- with_emissions_tracked(
+  {
+    for (epoch in seq_len(200)) {
+      optimizer$zero_grad()
+      pred <- model(x)
+      loss <- nnf_mse_loss(pred, y)
+      loss$backward()
+      optimizer$step()
+    }
+    as.numeric(loss$item())
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+
+cat("Device:", device, "\n")
+cat("Final training loss:", round(result$result, 4), "\n")
+result
 ```
 
 ## Python run
 
 ```{python}
-# from codecarbon import OfflineEmissionsTracker
-#
-# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
-#     pass  # equivalent neural net training loop
+import os
+import torch
+import torch.nn as nn
+from codecarbon import OfflineEmissionsTracker
+
+os.makedirs("py_output", exist_ok=True)
+torch.manual_seed(42)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+n = 5000
+p = 50
+X = torch.randn(n, p)
+true_w = torch.randn(p, 1)
+y = X @ true_w + torch.randn(n, 1) * 0.1
+X = X.to(device)
+y = y.to(device)
+
+model = nn.Sequential(
+    nn.Linear(p, 64), nn.ReLU(),
+    nn.Linear(64, 32), nn.ReLU(),
+    nn.Linear(32, 1),
+).to(device)
+
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+loss_fn = nn.MSELoss()
+
+with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+    for epoch in range(200):
+        optimizer.zero_grad()
+        pred = model(X)
+        loss = loss_fn(pred, y)
+        loss.backward()
+        optimizer.step()
+
+print(f"Device: {device}")
+print(f"Final training loss: {loss.item():.4f}")
 ```
 
 ## Comparison
 
 ```{r}
-# source("../_harness/compare_emissions.R")
-# compare_emissions(".")
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
 ```

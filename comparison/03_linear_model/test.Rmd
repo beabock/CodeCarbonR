@@ -9,36 +9,74 @@ reticulate::use_condaenv("r-codecarbon", required = TRUE)
 
 ## Workload
 
-TODO: a short-running, CPU-only, small in-memory statistical modeling
-case. Fit `lm()`/`glm()` on a synthetic or small built-in dataset, paired
-against `statsmodels` or `sklearn.linear_model` in Python.
+A short-running, CPU-only, small in-memory statistical modeling case: fit
+a multiple linear regression on synthetic data (50,000 rows, 10 predictors)
+with `lm()`, paired against `sklearn.linear_model.LinearRegression` in
+Python. `sklearn` rather than `statsmodels` since it's already a dependency
+of case 01's environment; `LinearRegression` is an ordinary-least-squares
+fit like `lm()`, so this is a direct analog rather than a different
+estimation method.
+
+As with the other synthetic-data cases, R's and Python's RNGs aren't
+bit-compatible, so this validates sane-range numbers for a modeling-shaped
+workload, not an exact match between the two runs.
 
 ## R run
 
 ```{r}
-# library(CodeCarbonR)
-#
-# result <- with_emissions_tracked(
-#   {
-#     # lm() / glm() fit
-#   },
-#   country_iso_code = "USA",
-#   output_dir = "r_output"
-# )
+library(CodeCarbonR)
+
+set.seed(42)
+n <- 50000
+p <- 10
+x <- matrix(rnorm(n * p), nrow = n)
+colnames(x) <- paste0("x", seq_len(p))
+beta <- rnorm(p)
+y <- as.vector(x %*% beta + rnorm(n, sd = 2))
+data <- as.data.frame(x)
+data$y <- y
+
+result <- with_emissions_tracked(
+  {
+    fit <- lm(y ~ ., data = data)
+    summary(fit)$r.squared
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+
+cat("R-squared:", round(result$result, 4), "\n")
+result
 ```
 
 ## Python run
 
 ```{python}
-# from codecarbon import OfflineEmissionsTracker
-#
-# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
-#     pass  # equivalent linear model fit
+import os
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from codecarbon import OfflineEmissionsTracker
+
+os.makedirs("py_output", exist_ok=True)
+
+np.random.seed(42)
+n = 50_000
+p = 10
+X = np.random.normal(size=(n, p))
+beta = np.random.normal(size=p)
+y = X @ beta + np.random.normal(scale=2, size=n)
+
+with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+    model = LinearRegression()
+    model.fit(X, y)
+    r_squared = model.score(X, y)
+
+print(f"R-squared: {r_squared:.4f}")
 ```
 
 ## Comparison
 
 ```{r}
-# source("../_harness/compare_emissions.R")
-# compare_emissions(".")
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
 ```

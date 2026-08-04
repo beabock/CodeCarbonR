@@ -9,40 +9,118 @@ reticulate::use_condaenv("r-codecarbon", required = TRUE)
 
 ## Workload
 
-TODO: a short-running, CPU-only, small in-memory data wrangling pipeline.
-No CodeCarbon example to mirror directly; paired against an equivalent
-pandas pipeline. Candidate workload: read a small CSV (or built-in
-dataset), group_by/summarize/join/pivot chain, compare against pandas
+A short-running, CPU-only, small in-memory data wrangling pipeline. No
+CodeCarbon example to mirror directly (its own examples are ML-focused),
+so this is paired against an equivalent pandas pipeline instead. Generates
+a synthetic 200,000-row sales table, then runs a
+group_by/summarize/join/pivot chain: aggregate revenue by region and
+category, join in a small tax-rate lookup table, then pivot categories out
+into columns. R side uses `dplyr`/`tidyr`, Python side uses pandas
 groupby/merge/pivot doing the same transformations.
+
+As with case 01, the two languages' RNGs aren't bit-compatible, so the
+generated data isn't identical between sides, just the same shape and
+distribution; this validates that reported numbers are in a sane range
+for a wrangling-shaped workload, not an exact duration match.
 
 ## R run
 
 ```{r}
-# library(CodeCarbonR)
-# library(dplyr)
-#
-# result <- with_emissions_tracked(
-#   {
-#     # wrangling pipeline
-#   },
-#   country_iso_code = "USA",
-#   output_dir = "r_output"
-# )
+library(CodeCarbonR)
+library(dplyr)
+library(tidyr)
+
+set.seed(42)
+n <- 200000
+regions <- c("North", "South", "East", "West")
+categories <- c("Electronics", "Grocery", "Apparel", "Home")
+
+sales <- data.frame(
+  region = sample(regions, n, replace = TRUE),
+  category = sample(categories, n, replace = TRUE),
+  quantity = sample(1:10, n, replace = TRUE),
+  price = round(runif(n, 5, 500), 2)
+)
+tax_rates <- data.frame(
+  region = regions,
+  tax_rate = c(0.07, 0.06, 0.08, 0.075)
+)
+
+result <- with_emissions_tracked(
+  {
+    summary <- sales %>%
+      group_by(region, category) %>%
+      summarise(
+        total_revenue = sum(quantity * price),
+        avg_price = mean(price),
+        n_orders = n(),
+        .groups = "drop"
+      ) %>%
+      inner_join(tax_rates, by = "region") %>%
+      mutate(revenue_after_tax = total_revenue * (1 - tax_rate))
+
+    wide <- summary %>%
+      select(region, category, total_revenue) %>%
+      pivot_wider(names_from = category, values_from = total_revenue)
+
+    wide
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+
+print(result$result)
+result
 ```
 
 ## Python run
 
 ```{python}
-# import pandas as pd
-# from codecarbon import OfflineEmissionsTracker
-#
-# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
-#     pass  # wrangling pipeline
+import os
+import numpy as np
+import pandas as pd
+from codecarbon import OfflineEmissionsTracker
+
+os.makedirs("py_output", exist_ok=True)
+
+np.random.seed(42)
+n = 200_000
+regions = ["North", "South", "East", "West"]
+categories = ["Electronics", "Grocery", "Apparel", "Home"]
+
+sales = pd.DataFrame({
+    "region": np.random.choice(regions, n),
+    "category": np.random.choice(categories, n),
+    "quantity": np.random.randint(1, 11, n),
+    "price": np.round(np.random.uniform(5, 500, n), 2),
+})
+tax_rates = pd.DataFrame({
+    "region": regions,
+    "tax_rate": [0.07, 0.06, 0.08, 0.075],
+})
+
+with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+    sales["revenue"] = sales["quantity"] * sales["price"]
+    summary = (
+        sales.groupby(["region", "category"])
+        .agg(
+            total_revenue=("revenue", "sum"),
+            avg_price=("price", "mean"),
+            n_orders=("revenue", "size"),
+        )
+        .reset_index()
+        .merge(tax_rates, on="region")
+    )
+    summary["revenue_after_tax"] = summary["total_revenue"] * (1 - summary["tax_rate"])
+
+    wide = summary.pivot(index="region", columns="category", values="total_revenue")
+
+print(wide)
 ```
 
 ## Comparison
 
 ```{r}
-# source("../_harness/compare_emissions.R")
-# compare_emissions(".")
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
 ```

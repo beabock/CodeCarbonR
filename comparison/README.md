@@ -67,6 +67,14 @@ automatically a bug.
 
 ## Platform coverage
 
-Tested on Windows and Linux this round. Apple Silicon is deferred to a
-later round. The GPU test case is designed to run on a cloud GPU instance
-rather than local hardware.
+See `coverage_matrix.md` for current per-case validation status. As of
+this round, cases 01-06 have been rendered and validated on Windows; CI
+(`.github/workflows/`) runs the package's own `R CMD check`/`testthat`
+suite (not these comparison notebooks) across Windows, Linux, and Mac.
+
+Mac/Apple Silicon is **untested** for the comparison suite itself, not
+merely deferred -- nothing here has actually been rendered on macOS. Don't
+read CI passing on a Mac runner as evidence this suite works there too.
+
+Case 07 (GPU) is designed to run on a cloud GPU instance rather than local
+hardware, and has not yet been run at all -- see `coverage_matrix.md`.

@@ -9,39 +9,82 @@ reticulate::use_condaenv("r-codecarbon", required = TRUE)
 
 ## Workload
 
-TODO: the long-running case. A loop-heavy stochastic simulation (thousands
-to millions of iterations, e.g. a bootstrap or random-walk process) with
-negligible memory footprint, to isolate CPU-time-driven emissions from
-data-size-driven emissions. Needs a target runtime decided (a few minutes,
-long enough that tracker sampling interval doesn't dominate the
-measurement).
+The long-running case: a loop-heavy stochastic simulation (8,000,000
+iterations), estimating pi by the classic Monte Carlo circle/square ratio.
+Deliberately written as an explicit `for` loop rather than vectorized code
+on both sides, since a vectorized version would finish in well under a
+second and defeat the point of this case: a workload with negligible
+memory footprint (a couple of scalars) but sustained CPU work, to isolate
+CPU-time-driven emissions from the data-size-driven emissions the other
+cases exercise.
+
+Neither side overrides `measure_power_secs` (codecarbon's default is 15s),
+so this is also the case that actually exercises the tracker's periodic
+background sampling more than once, unlike the sub-second cases elsewhere
+in this suite where the reported figures come entirely from the
+start/stop bookend measurement.
+
+R's interpreted `for` loop is markedly slower per iteration than Python's
+(measured ~9x on this machine: ~4.1us vs ~0.45us per iteration), so with
+the same iteration count on both sides, expect R's `duration` to run
+several times longer than Python's, same as the caveat in case 01. That's
+expected here too, not a bug: the workload runs a comparable amount of
+*work* (one random-point-in-circle test per iteration) but not comparable
+wall-clock time, since the two interpreters aren't equally fast at that
+same loop-based work.
 
 ## R run
 
 ```{r}
-# library(CodeCarbonR)
-#
-# result <- with_emissions_tracked(
-#   {
-#     # simulation loop
-#   },
-#   country_iso_code = "USA",
-#   output_dir = "r_output"
-# )
+library(CodeCarbonR)
+
+set.seed(42)
+n <- 8000000
+
+result <- with_emissions_tracked(
+  {
+    inside <- 0L
+    for (i in seq_len(n)) {
+      x <- runif(1, -1, 1)
+      y <- runif(1, -1, 1)
+      if (x * x + y * y <= 1) inside <- inside + 1L
+    }
+    4 * inside / n
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+
+cat("Pi estimate:", round(result$result, 4), "\n")
+result
 ```
 
 ## Python run
 
 ```{python}
-# from codecarbon import OfflineEmissionsTracker
-#
-# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
-#     pass  # equivalent simulation loop
+import os
+import random
+from codecarbon import OfflineEmissionsTracker
+
+os.makedirs("py_output", exist_ok=True)
+random.seed(42)
+n = 8_000_000
+
+with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+    inside = 0
+    for _ in range(n):
+        x = random.uniform(-1, 1)
+        y = random.uniform(-1, 1)
+        if x * x + y * y <= 1:
+            inside += 1
+    pi_estimate = 4 * inside / n
+
+print(f"Pi estimate: {pi_estimate:.4f}")
 ```
 
 ## Comparison
 
 ```{r}
-# source("../_harness/compare_emissions.R")
-# compare_emissions(".")
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
 ```

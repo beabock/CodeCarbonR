@@ -9,39 +9,110 @@ reticulate::use_condaenv("r-codecarbon", required = TRUE)
 
 ## Workload
 
-TODO: the large-file / I/O-bound case. Generate, write, read back, and
-aggregate a large CSV (target ~1 GB) to exercise disk I/O and rule out
-platform-specific file path or I/O handling bugs (this is the case most
-likely to expose Windows vs. Linux vs. Mac path issues). Needs a decision
-on whether the generated file is checked into the repo (no, too large),
-generated fresh each run, or downloaded from a fixed source.
+The large-file / I/O-bound case: generate an in-memory table, write it to
+disk as CSV (target ~1 GB), read it back, and aggregate it. Exercises disk
+I/O specifically, to rule out platform-specific file path or I/O handling
+bugs (this is the case most likely to expose Windows vs. Linux vs. Mac
+path issues, though only Windows and Linux are validated so far -- see
+`../coverage_matrix.md`).
+
+The generated file is never checked into the repo: it's written fresh into
+`r_output/`/`py_output/` (already gitignored) on every render and deleted
+at the end of the chunk, after tracking stops. R uses `readr` for
+write/read (base `write.csv`/`read.csv` would make this case take several
+times longer without meaningfully changing what it validates); Python uses
+pandas, consistent with the other cases in this suite.
 
 ## R run
 
 ```{r}
-# library(CodeCarbonR)
-#
-# result <- with_emissions_tracked(
-#   {
-#     # write large CSV, read it back, aggregate
-#   },
-#   country_iso_code = "USA",
-#   output_dir = "r_output"
-# )
+library(CodeCarbonR)
+library(readr)
+library(dplyr)
+
+set.seed(42)
+n <- 18000000
+categories <- c("alpha", "beta", "gamma", "delta", "epsilon", "zeta")
+csv_path <- file.path("r_output", "large_data.csv")
+
+result <- with_emissions_tracked(
+  {
+    data <- data.frame(
+      id = seq_len(n),
+      category = sample(categories, n, replace = TRUE),
+      value_a = round(rnorm(n), 4),
+      value_b = round(runif(n, -100, 100), 4),
+      value_c = round(rexp(n), 4),
+      flag = sample(c(TRUE, FALSE), n, replace = TRUE)
+    )
+    write_csv(data, csv_path)
+    rm(data)
+
+    loaded <- read_csv(csv_path, show_col_types = FALSE)
+    loaded %>%
+      group_by(category) %>%
+      summarise(
+        n = n(),
+        mean_a = mean(value_a),
+        mean_b = mean(value_b),
+        mean_c = mean(value_c),
+        .groups = "drop"
+      )
+  },
+  country_iso_code = "USA",
+  output_dir = "r_output"
+)
+
+file_size_mb <- file.size(csv_path) / 1024^2
+cat("CSV size:", round(file_size_mb, 1), "MB\n")
+print(result$result)
+unlink(csv_path)
+result
 ```
 
 ## Python run
 
 ```{python}
-# from codecarbon import OfflineEmissionsTracker
-#
-# with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
-#     pass  # equivalent write/read/aggregate
+import os
+import numpy as np
+import pandas as pd
+from codecarbon import OfflineEmissionsTracker
+
+os.makedirs("py_output", exist_ok=True)
+np.random.seed(42)
+n = 18_000_000
+categories = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta"]
+csv_path = os.path.join("py_output", "large_data.csv")
+
+with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
+    data = pd.DataFrame({
+        "id": np.arange(1, n + 1),
+        "category": np.random.choice(categories, n),
+        "value_a": np.round(np.random.normal(size=n), 4),
+        "value_b": np.round(np.random.uniform(-100, 100, n), 4),
+        "value_c": np.round(np.random.exponential(size=n), 4),
+        "flag": np.random.choice([True, False], n),
+    })
+    data.to_csv(csv_path, index=False)
+    del data
+
+    loaded = pd.read_csv(csv_path)
+    summary = loaded.groupby("category").agg(
+        n=("id", "size"),
+        mean_a=("value_a", "mean"),
+        mean_b=("value_b", "mean"),
+        mean_c=("value_c", "mean"),
+    )
+
+file_size_mb = os.path.getsize(csv_path) / 1024**2
+print(f"CSV size: {file_size_mb:.1f} MB")
+print(summary)
+os.remove(csv_path)
 ```
 
 ## Comparison
 
 ```{r}
-# source("../_harness/compare_emissions.R")
-# compare_emissions(".")
+source("../_harness/compare_emissions.R")
+compare_emissions(".")
 ```

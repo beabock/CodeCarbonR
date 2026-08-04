@@ -3,6 +3,10 @@
 .RData
 .Ruserdata
 emissions.csv
+*.Rcheck/
+*.tar.gz
+/doc/
+/Meta/
 comparison/**/r_output/
 comparison/**/py_output/
 comparison/**/*_files/
