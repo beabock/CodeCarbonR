@@ -1,7 +1,11 @@
 ---
 title: "random forest classification"
-format: html
+output: html_document
 ---
+
+```{r setup, include=FALSE}
+reticulate::use_condaenv("r-codecarbon", required = TRUE)
+```
 
 ## Workload
 
@@ -57,13 +61,15 @@ result
 ## Python run
 
 ```{python}
+import os
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from codecarbon import OfflineEmissionsTracker
 
+os.makedirs("py_output", exist_ok=True)
 X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
     model = RandomForestClassifier(n_estimators=100, random_state=42)

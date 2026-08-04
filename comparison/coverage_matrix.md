@@ -7,7 +7,7 @@
 | 03 | linear_model | short | CPU | small, in-memory | statistical modeling | placeholder |
 | 04 | monte_carlo_simulation | long | CPU | small, in-memory | simulation | placeholder |
 | 05 | large_csv_io | short-medium, I/O-bound | CPU | large, on-disk | file I/O | placeholder |
-| 06 | multi_step_tracking | short | CPU | small, in-memory | tracker API (start/stop x3) | placeholder |
+| 06 | multi_step_tracking | short | CPU | small, in-memory | tracker API (start/stop x3) | built |
 | 07 | gpu_neural_net | medium-long | GPU | small-medium, in-memory | ML training | placeholder |
 
 ## Rationale

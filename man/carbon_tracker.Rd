@@ -24,3 +24,13 @@ Wraps a codecarbon \code{OfflineEmissionsTracker}. Call \verb{$start()} before t
 code you want to measure and \verb{$stop()} after, or use
 \code{\link[=with_emissions_tracked]{with_emissions_tracked()}} to measure a single block in one call.
 }
+\details{
+Each tracker instance supports one \verb{$start()}/\verb{$stop()} cycle. Calling
+\verb{$start()} again after \verb{$stop()} on the same instance does not restart
+measurement: codecarbon's underlying tracker never resets its internal
+clock, so the next \verb{$stop()} silently returns the first cycle's
+emissions/energy figures again (only \code{duration} keeps climbing). To
+measure several phases separately, create a new \code{carbon_tracker()} per
+phase; each \verb{$stop()} still appends its own row to the same
+\code{output_dir}'s \code{emissions.csv}.
+}

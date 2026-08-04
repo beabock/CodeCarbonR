@@ -1,7 +1,11 @@
 ---
 title: "large csv io"
-format: html
+output: html_document
 ---
+
+```{r setup, include=FALSE}
+reticulate::use_condaenv("r-codecarbon", required = TRUE)
+```
 
 ## Workload
 

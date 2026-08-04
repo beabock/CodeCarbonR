@@ -1,0 +1,135 @@
+---
+title: "multi step tracking"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+reticulate::use_condaenv("r-codecarbon", required = TRUE)
+```
+
+## Workload
+
+Exercises `carbon_tracker()$start()`/`$stop()` across three phases in one
+script, rather than `with_emissions_tracked()`'s single-block path. Mirrors
+the "Multiple Trackers" pattern from CodeCarbon's own docs:
+https://docs.codecarbon.io/latest/how-to/scikit-learn/#multiple-trackers.
+
+Reuses the random forest workload from case 01, split into three phases so
+each is measured separately: data generation, training, and prediction.
+
+Each phase gets its own tracker instance rather than reusing one instance's
+`start()`/`stop()` across all three. Reuse doesn't work: `codecarbon`'s
+`stop()` never resets its internal `_start_time`, so a `start()` after a
+`stop()` on the same instance logs "Already started tracking" and no-ops,
+and the following `stop()` logs "Tracker already stopped !" and returns the
+first phase's emissions/energy figures again, frozen, with only `duration`
+still climbing (measured from the original start). Confirmed identically on
+both the R and raw Python side, so it's `codecarbon`'s tracker semantics,
+not a CodeCarbonR wrapper bug. One tracker per phase is what actually
+produces independent per-phase numbers, and matches what "Multiple
+Trackers" in CodeCarbon's own docs means. Each `stop()` call still appends
+one row to `emissions.csv` on both sides, so this still exercises the
+repeated-append path of the output file.
+
+## R run
+
+```{r}
+library(CodeCarbonR)
+library(ranger)
+
+set.seed(42)
+
+tracker1 <- carbon_tracker(
+  country_iso_code = "USA",
+  project_name = "CodeCarbonR",
+  output_dir = "r_output"
+)
+tracker1$start()
+n <- 1000
+p <- 20
+x <- matrix(rnorm(n * p), nrow = n)
+beta <- rnorm(p)
+linpred <- x %*% beta
+y <- factor(ifelse(linpred + rnorm(n) > median(linpred), 1, 0))
+data <- as.data.frame(x)
+data$y <- y
+train_idx <- sample(seq_len(n), size = 0.8 * n)
+train_data <- data[train_idx, ]
+test_data <- data[-train_idx, ]
+data_generation_emissions <- tracker1$stop()
+
+tracker2 <- carbon_tracker(
+  country_iso_code = "USA",
+  project_name = "CodeCarbonR",
+  output_dir = "r_output"
+)
+tracker2$start()
+model <- ranger(y ~ ., data = train_data, num.trees = 100)
+training_emissions <- tracker2$stop()
+
+tracker3 <- carbon_tracker(
+  country_iso_code = "USA",
+  project_name = "CodeCarbonR",
+  output_dir = "r_output"
+)
+tracker3$start()
+predictions <- predict(model, test_data)$predictions
+accuracy <- mean(predictions == test_data$y)
+prediction_emissions <- tracker3$stop()
+
+cat("Model accuracy:", round(accuracy, 3), "\n")
+```
+
+## Python run
+
+```{python}
+import os
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from codecarbon import OfflineEmissionsTracker
+
+os.makedirs("py_output", exist_ok=True)
+
+tracker1 = OfflineEmissionsTracker(
+    country_iso_code="USA",
+    project_name="CodeCarbonR",
+    output_dir="py_output",
+)
+tracker1.start()
+X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+data_generation_emissions = tracker1.stop()
+
+tracker2 = OfflineEmissionsTracker(
+    country_iso_code="USA",
+    project_name="CodeCarbonR",
+    output_dir="py_output",
+)
+tracker2.start()
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+training_emissions = tracker2.stop()
+
+tracker3 = OfflineEmissionsTracker(
+    country_iso_code="USA",
+    project_name="CodeCarbonR",
+    output_dir="py_output",
+)
+tracker3.start()
+accuracy = model.score(X_test, y_test)
+prediction_emissions = tracker3.stop()
+
+print(f"Model accuracy: {accuracy:.3f}")
+```
+
+## Comparison
+
+`compare_emissions_multi()` compares all three phases row by row, since
+each tracker's `stop()` appends a new row to `emissions.csv` on both sides
+in the same order the trackers were run.
+
+```{r}
+source("../_harness/compare_emissions.R")
+compare_emissions_multi(".", phase_labels = c("data_generation", "training", "prediction"))
+```

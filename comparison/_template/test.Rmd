@@ -1,7 +1,11 @@
 ---
 title: "<test case name>"
-format: html
+output: html_document
 ---
+
+```{r setup, include=FALSE}
+reticulate::use_condaenv("r-codecarbon", required = TRUE)
+```
 
 ## Workload
 
@@ -25,8 +29,10 @@ result
 ## Python run
 
 ```{python}
+import os
 from codecarbon import OfflineEmissionsTracker
 
+os.makedirs("py_output", exist_ok=True)
 tracker = OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output")
 tracker.start()
 

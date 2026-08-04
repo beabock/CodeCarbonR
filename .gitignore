@@ -6,4 +6,8 @@ emissions.csv
 comparison/**/r_output/
 comparison/**/py_output/
 comparison/**/*_files/
+comparison/**/*_cache/
 comparison/**/*.html
+comparison/**/*.md
+!comparison/README.md
+!comparison/coverage_matrix.md

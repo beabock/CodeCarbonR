@@ -15,22 +15,35 @@ is meant to exercise.
 ```
 comparison/
   _harness/compare_emissions.R   diffs r_output/emissions.csv against py_output/emissions.csv
-  _template/test.qmd             starting point for a new test case
-  01_random_forest_classification/test.qmd
-  02_dplyr_wrangling/test.qmd
+  _template/test.Rmd             starting point for a new test case
+  01_random_forest_classification/test.Rmd
+  02_dplyr_wrangling/test.Rmd
   ...
 ```
 
-Each test case is a single `.qmd` with three sections: an R chunk running
+Each test case is a single `.Rmd` with three sections: an R chunk running
 the workload under `with_emissions_tracked()`, a Python chunk running the
 same workload under `codecarbon.OfflineEmissionsTracker`, and a comparison
 chunk that calls `compare_emissions()` on the two outputs.
 
+Rendering uses R Markdown, not Quarto: `rmarkdown::render()` runs the R
+chunks via knitr and the Python chunks via knitr's reticulate-backed Python
+engine, then hands off to pandoc for the final HTML. Since `reticulate` is
+already a CodeCarbonR dependency, this only needs the `rmarkdown` R
+package and pandoc on the `PATH` (both R Markdown requirements, no Quarto
+install needed).
+
+Every case's setup chunk points reticulate at the `r-codecarbon` conda
+environment (the one `setup_carbon_tracker()` creates), so the Python
+chunk runs the same installed codecarbon version CodeCarbonR itself calls
+into. Without that, a version mismatch between the R side and Python side
+would confound the comparison.
+
 `r_output/` and `py_output/` are generated on render and are gitignored.
 Render a case with:
 
-```
-quarto render comparison/01_random_forest_classification/test.qmd
+```r
+rmarkdown::render("comparison/01_random_forest_classification/test.Rmd")
 ```
 
 ## Why OfflineEmissionsTracker on both sides

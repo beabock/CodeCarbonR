@@ -7,6 +7,10 @@ CarbonTracker <- R6::R6Class(
     initialize = function(country_iso_code = NULL, project_name = "CodeCarbonR", ...) {
       ensure_codecarbon_available()
       validate_country_iso_code(country_iso_code)
+      extra_args <- list(...)
+      if (!is.null(extra_args$output_dir) && !dir.exists(extra_args$output_dir)) {
+        dir.create(extra_args$output_dir, recursive = TRUE)
+      }
       codecarbon <- reticulate::import("codecarbon")
       private$py_tracker <- codecarbon$OfflineEmissionsTracker(
         project_name = project_name,
@@ -41,6 +45,15 @@ CarbonTracker <- R6::R6Class(
 #' Wraps a codecarbon `OfflineEmissionsTracker`. Call `$start()` before the
 #' code you want to measure and `$stop()` after, or use
 #' [with_emissions_tracked()] to measure a single block in one call.
+#'
+#' Each tracker instance supports one `$start()`/`$stop()` cycle. Calling
+#' `$start()` again after `$stop()` on the same instance does not restart
+#' measurement: codecarbon's underlying tracker never resets its internal
+#' clock, so the next `$stop()` silently returns the first cycle's
+#' emissions/energy figures again (only `duration` keeps climbing). To
+#' measure several phases separately, create a new `carbon_tracker()` per
+#' phase; each `$stop()` still appends its own row to the same
+#' `output_dir`'s `emissions.csv`.
 #'
 #' @param country_iso_code 3-letter ISO code used to look up grid carbon
 #'   intensity, e.g. `"USA"`. Call [list_carbon_tracker_countries()] for the
