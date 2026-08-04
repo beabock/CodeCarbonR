@@ -29,7 +29,10 @@ test_that("emissions_data_to_list rejects non-Python input", {
 
 test_that("a live tracker produces a well-formed carbon_emissions object", {
   skip_if_no_codecarbon()
-  tracker <- carbon_tracker(country_iso_code = "USA", measure_power_secs = 1, log_level = "error")
+  tracker <- carbon_tracker(
+    country_iso_code = "USA", measure_power_secs = 1, log_level = "error",
+    output_dir = tempdir()
+  )
   tracker$start()
   Sys.sleep(2)
   emissions <- tracker$stop()

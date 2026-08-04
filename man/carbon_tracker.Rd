@@ -27,9 +27,14 @@ code you want to measure and \verb{$stop()} after, or use
 \details{
 Each tracker instance supports one \verb{$start()}/\verb{$stop()} cycle. Calling
 \verb{$start()} again after \verb{$stop()} on the same instance does not restart
-measurement: codecarbon's underlying tracker never resets its internal
-clock, so the next \verb{$stop()} silently returns the first cycle's
-emissions/energy figures again (only \code{duration} keeps climbing). To
+measurement, because codecarbon's underlying tracker never resets its
+internal clock -- but exactly what the next \verb{$stop()} returns depends on
+the installed codecarbon version: codecarbon 2.x returns the first
+cycle's emissions/energy figures again, frozen; codecarbon 3.x instead
+keeps accumulating energy from the original start, so the second
+reading comes back inflated rather than frozen. Either way it is not an
+isolated measurement of the second cycle's own work, and \code{duration}
+keeps climbing from the original start rather than resetting. To
 measure several phases separately, create a new \code{carbon_tracker()} per
 phase; each \verb{$stop()} still appends its own row to the same
 \code{output_dir}'s \code{emissions.csv}.

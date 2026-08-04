@@ -63,15 +63,19 @@ mirroring the "Multiple Trackers" pattern from CodeCarbon's own docs.
 Originally built to reuse *one* tracker instance across all three
 start/stop cycles; that turned out not to work -- codecarbon's
 `OfflineEmissionsTracker.stop()` never resets its internal start time, so
-a second `start()` on the same instance is a no-op and the following
-`stop()` returns the first cycle's emissions/energy figures again,
-frozen (confirmed identically on both the R and raw Python side, so it's
-a codecarbon limitation, not a CodeCarbonR bug -- see
-`R/tracker.R`'s `carbon_tracker()` docs and
-`tests/testthat/test-tracker.R` for the regression tests that pin this).
-The case now creates one tracker per phase instead, which does produce
-independent per-phase numbers, and still exercises the repeated-append
-path of `emissions.csv` since each `stop()` appends its own row.
+a second `start()` on the same instance is a no-op. What the following
+`stop()` returns is codecarbon-version-dependent: 2.x returns the first
+cycle's emissions/energy figures again, frozen; 3.x instead keeps
+accumulating energy from the original start, so the reading comes back
+inflated rather than frozen (confirmed directly on both codecarbon 2.2.2
+and 3.3.0, and identically on both the R and raw Python side, so it's a
+codecarbon limitation, not a CodeCarbonR bug -- see `R/tracker.R`'s
+`carbon_tracker()` docs and `tests/testthat/test-tracker.R` for the
+regression tests that pin the version-robust invariant rather than either
+version's exact numeric behavior). The case now creates one tracker per
+phase instead, which does produce independent per-phase numbers, and
+still exercises the repeated-append path of `emissions.csv` since each
+`stop()` appends its own row.
 
 **07 gpu_neural_net** is the GPU case, meant to run on a cloud GPU instance
 rather than local hardware. Framework: R `torch` vs Python `PyTorch` (both

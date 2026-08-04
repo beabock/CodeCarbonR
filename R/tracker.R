@@ -48,9 +48,14 @@ CarbonTracker <- R6::R6Class(
 #'
 #' Each tracker instance supports one `$start()`/`$stop()` cycle. Calling
 #' `$start()` again after `$stop()` on the same instance does not restart
-#' measurement: codecarbon's underlying tracker never resets its internal
-#' clock, so the next `$stop()` silently returns the first cycle's
-#' emissions/energy figures again (only `duration` keeps climbing). To
+#' measurement, because codecarbon's underlying tracker never resets its
+#' internal clock -- but exactly what the next `$stop()` returns depends on
+#' the installed codecarbon version: codecarbon 2.x returns the first
+#' cycle's emissions/energy figures again, frozen; codecarbon 3.x instead
+#' keeps accumulating energy from the original start, so the second
+#' reading comes back inflated rather than frozen. Either way it is not an
+#' isolated measurement of the second cycle's own work, and `duration`
+#' keeps climbing from the original start rather than resetting. To
 #' measure several phases separately, create a new `carbon_tracker()` per
 #' phase; each `$stop()` still appends its own row to the same
 #' `output_dir`'s `emissions.csv`.

@@ -1,3 +1,7 @@
 ^\.claude$
 ^comparison$
 ^\.github$
+^LICENSE\.md$
+^CITATION\.cff$
+^RELEASING\.md$
+^emissions\.csv$

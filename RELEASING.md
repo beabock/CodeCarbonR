@@ -80,19 +80,18 @@ Not required for the Zenodo DOI or the paper's reproducibility claims --
 only pursue this if you specifically want CRAN's discoverability/CI
 guarantees on top. Frictions specific to this package:
 
-- **`R CMD check --as-cran` must stay clean.** Locally this package
-  currently passes with 0 errors, 0 warnings, and 1 NOTE (validated
-  2026-08-04); re-run with `--as-cran` specifically before submitting,
-  since it enables a few extra checks beyond a plain `R CMD check`. The
-  one NOTE is `CITATION.cff` living at the repo root ("Found the following
-  CITATION file in a non-standard place... Most likely 'inst/CITATION'
-  should be used instead") -- unavoidable while keeping both: `CITATION.cff`
-  has to live at the repo root for GitHub's "Cite this repository" button
-  and Zenodo to find it, and `inst/CITATION` (already added) is what makes
-  `citation("CodeCarbonR")` work from R. If a CRAN maintainer objects to
-  the NOTE, the fix is to drop `CITATION.cff` from CRAN's submission
-  tarball via `.Rbuildignore` -- but keep it in the GitHub repo itself so
-  Zenodo archiving still works.
+- **`R CMD check --as-cran` must stay clean.** Validated 2026-08-05 with
+  `--as-cran` specifically (which is what actually caught the issues
+  below -- a plain `R CMD check` misses some of these). `CITATION.cff` and
+  `RELEASING.md` are `.Rbuildignore`d, so they stay at the repo root for
+  GitHub's "Cite this repository" button and Zenodo to find (Zenodo/GitHub
+  read them from the git repo directly, not from the built R package
+  tarball, so excluding them from the tarball costs nothing there), while
+  `inst/CITATION` is what makes `citation("CodeCarbonR")` work from R. The
+  `LICENSE` file is the short DCF stub R expects for `License: MIT + file
+  LICENSE` (`YEAR:`/`COPYRIGHT HOLDER:`); the full MIT text lives in
+  `LICENSE.md` instead (also `.Rbuildignore`d), which is what GitHub's
+  license detector reads.
 - **`setup_carbon_tracker()` installs software and touches the network.**
   CRAN's policy forbids examples/tests/vignettes that install software,
   write outside `tempdir()`, or require network access during

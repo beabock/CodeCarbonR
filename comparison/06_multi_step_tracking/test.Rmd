@@ -20,16 +20,21 @@ each is measured separately: data generation, training, and prediction.
 Each phase gets its own tracker instance rather than reusing one instance's
 `start()`/`stop()` across all three. Reuse doesn't work: `codecarbon`'s
 `stop()` never resets its internal `_start_time`, so a `start()` after a
-`stop()` on the same instance logs "Already started tracking" and no-ops,
-and the following `stop()` logs "Tracker already stopped !" and returns the
-first phase's emissions/energy figures again, frozen, with only `duration`
-still climbing (measured from the original start). Confirmed identically on
-both the R and raw Python side, so it's `codecarbon`'s tracker semantics,
-not a CodeCarbonR wrapper bug. One tracker per phase is what actually
-produces independent per-phase numbers, and matches what "Multiple
-Trackers" in CodeCarbon's own docs means. Each `stop()` call still appends
-one row to `emissions.csv` on both sides, so this still exercises the
-repeated-append path of the output file.
+`stop()` on the same instance logs "Already started tracking" and no-ops.
+What the following `stop()` then returns is codecarbon-version-dependent --
+2.x logs "Tracker already stopped !" and returns the first phase's
+emissions/energy figures again, frozen; 3.x instead keeps accumulating
+energy from the original start, so the reading comes back inflated rather
+than frozen. Either way it's not an isolated measurement of that phase's
+own work, and `duration` keeps climbing from the original start rather
+than resetting. Confirmed identically on both the R and raw Python side
+across both codecarbon versions, so it's `codecarbon`'s tracker semantics,
+not a CodeCarbonR wrapper bug (see `tests/testthat/test-tracker.R` for the
+regression test, and `R/tracker.R`'s `carbon_tracker()` docs). One tracker
+per phase is what actually produces independent per-phase numbers, and
+matches what "Multiple Trackers" in CodeCarbon's own docs means. Each
+`stop()` call still appends one row to `emissions.csv` on both sides, so
+this still exercises the repeated-append path of the output file.
 
 ## R run
 
