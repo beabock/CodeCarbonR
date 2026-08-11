@@ -22,5 +22,5 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-SystemRequirements: Python (>= 3.9); codecarbon Python package, installed via
-    setup_carbon_tracker()
+SystemRequirements: Python (>= 3.9); codecarbon Python package (>= 2.2.2),
+    installed via setup_carbon_tracker()

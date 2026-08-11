@@ -20,3 +20,16 @@ once per machine before using \code{\link[=carbon_tracker]{carbon_tracker()}} or
 \code{\link[=with_emissions_tracked]{with_emissions_tracked()}}. Nothing is installed without confirmation, and
 the function refuses to run outside an interactive session.
 }
+\details{
+Installs codecarbon \verb{>= 2.2.2} -- a floor, not an exact pin. That's the
+oldest version this package has actually been validated against (see
+\code{comparison/coverage_matrix.md} and \code{NEWS.md} for exactly which versions
+were validated, and where); newer codecarbon releases are expected and
+welcome, since they bring updated carbon-intensity data along with
+whatever bug fixes landed upstream. codecarbon's behavior has changed
+between versions before (see \code{\link[=carbon_tracker]{carbon_tracker()}}'s docs on tracker
+restart), so if something about CodeCarbonR's output looks different
+after a codecarbon upgrade, that's the first thing to check. Keep the
+floor here in sync with DESCRIPTION's \code{SystemRequirements} field if it
+changes.
+}

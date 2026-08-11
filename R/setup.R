@@ -6,6 +6,18 @@
 #' [with_emissions_tracked()]. Nothing is installed without confirmation, and
 #' the function refuses to run outside an interactive session.
 #'
+#' Installs codecarbon `>= 2.2.2` -- a floor, not an exact pin. That's the
+#' oldest version this package has actually been validated against (see
+#' `comparison/coverage_matrix.md` and `NEWS.md` for exactly which versions
+#' were validated, and where); newer codecarbon releases are expected and
+#' welcome, since they bring updated carbon-intensity data along with
+#' whatever bug fixes landed upstream. codecarbon's behavior has changed
+#' between versions before (see [carbon_tracker()]'s docs on tracker
+#' restart), so if something about CodeCarbonR's output looks different
+#' after a codecarbon upgrade, that's the first thing to check. Keep the
+#' floor here in sync with DESCRIPTION's `SystemRequirements` field if it
+#' changes.
+#'
 #' @param force Reinstall codecarbon even if it's already available.
 #' @return Invisibly, `TRUE` if codecarbon is ready to use after the call,
 #'   `FALSE` if setup was cancelled.
@@ -42,7 +54,7 @@ setup_carbon_tracker <- function(force = FALSE) {
   if (miniconda_needed) {
     reticulate::install_miniconda()
   }
-  reticulate::py_install("codecarbon", envname = "r-codecarbon", method = "conda")
+  reticulate::py_install("codecarbon>=2.2.2", envname = "r-codecarbon", method = "conda")
 
   if (!carbon_tracker_ready()) {
     stop("codecarbon did not install correctly. Run setup_carbon_tracker() again.", call. = FALSE)
