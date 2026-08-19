@@ -19,10 +19,14 @@ default_cases <- c(
 
 cases <- if (length(args) > 0) args else default_cases
 
-# Same CONDA_EXE-aware lookup every test.Rmd's setup chunk uses -- each
-# case renders in its own fresh R session, so this needs to be redone per
-# session; see comparison/_harness/use_r_codecarbon.R for why plain
-# use_condaenv() isn't reliable here.
+# Same CONDA_EXE-aware lookup every test.Rmd's setup chunk uses. Note this
+# for loop's rmarkdown::render() calls all run in *this* R session, not a
+# fresh one per case -- so this call and every case's own setup-chunk call
+# after it are hitting the same session. use_r_codecarbon() itself guards
+# against the redundant repeat calls that produces (see its own docs for
+# why that guard exists and matters here); see
+# comparison/_harness/use_r_codecarbon.R for why plain use_condaenv()
+# isn't reliable in the first place.
 source("comparison/_harness/use_r_codecarbon.R")
 use_r_codecarbon()
 

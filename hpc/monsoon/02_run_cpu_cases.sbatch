@@ -24,8 +24,14 @@ export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 
+# Same install location as 01_setup.sh. If you set CODECARBONR_MINICONDA_DIR
+# for that script (e.g. because $HOME's quota can't fit the conda envs),
+# `export` it in your shell before `sbatch`-submitting this job too --
+# Slurm's default behavior propagates the submitting shell's exported
+# environment into the job, so this picks it up automatically.
+MINICONDA_DIR="${CODECARBONR_MINICONDA_DIR:-$HOME/miniconda3-codecarbonr}"
 # shellcheck disable=SC1091
-source "$HOME/miniconda3-codecarbonr/etc/profile.d/conda.sh"
+source "$MINICONDA_DIR/etc/profile.d/conda.sh"
 conda activate codecarbonr-r
 
 cd "$SLURM_SUBMIT_DIR"

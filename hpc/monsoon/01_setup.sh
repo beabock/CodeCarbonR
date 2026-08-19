@@ -5,19 +5,33 @@
 # reason to pay that cost until you're actually ready for the GPU case.
 #
 # Run this on a LOGIN NODE (needs internet for downloads). The batch script
-# (02_run_cpu_cases.sbatch) only uses what this installs into $HOME and
-# doesn't need internet itself.
+# (02_run_cpu_cases.sbatch) only uses what this installs and doesn't need
+# internet itself.
+#
+# Installs to $HOME/miniconda3-codecarbonr by default. If your account's
+# $HOME quota can't fit a conda env with numpy/torch/etc (common on shared
+# HPC systems), set CODECARBONR_MINICONDA_DIR to somewhere with more room
+# (e.g. project scratch storage) before running this AND before every
+# sbatch submission -- 02_run_cpu_cases.sbatch/03_run_gpu_case.sbatch read
+# the same variable, and Slurm's default `sbatch` behavior does propagate
+# your exported environment into the job, so `export`ing it in your shell
+# is enough:
+#   export CODECARBONR_MINICONDA_DIR=/90daydata/<project>/<you>/miniconda3-codecarbonr
 #
 # Usage, from the repo root after cloning:
 #   bash hpc/monsoon/01_setup.sh
 
 set -euo pipefail
 
-MINICONDA_DIR="$HOME/miniconda3-codecarbonr"
+MINICONDA_DIR="${CODECARBONR_MINICONDA_DIR:-$HOME/miniconda3-codecarbonr}"
 
 show_quota() {
-  echo "--- disk usage on \$HOME ---"
-  quota -s 2>/dev/null || df -h "$HOME"
+  # $MINICONDA_DIR itself may not exist yet on the "before install" call --
+  # df needs a path that's actually there, so fall back to its parent.
+  local quota_check_path="$MINICONDA_DIR"
+  [ -d "$quota_check_path" ] || quota_check_path="$(dirname "$MINICONDA_DIR")"
+  echo "--- disk usage on $quota_check_path ---"
+  quota -s 2>/dev/null || df -h "$quota_check_path"
   echo "----------------------------"
 }
 

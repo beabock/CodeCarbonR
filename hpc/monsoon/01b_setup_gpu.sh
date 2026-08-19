@@ -9,7 +9,9 @@
 
 set -euo pipefail
 
-MINICONDA_DIR="$HOME/miniconda3-codecarbonr"
+# Same override as 01_setup.sh -- if you set CODECARBONR_MINICONDA_DIR for
+# that script, set it the same way here too.
+MINICONDA_DIR="${CODECARBONR_MINICONDA_DIR:-$HOME/miniconda3-codecarbonr}"
 if [ ! -d "$MINICONDA_DIR" ]; then
   echo "Miniconda not found at $MINICONDA_DIR -- run 01_setup.sh first." >&2
   exit 1
@@ -18,8 +20,8 @@ fi
 source "$MINICONDA_DIR/etc/profile.d/conda.sh"
 
 show_quota() {
-  echo "--- disk usage on \$HOME ---"
-  quota -s 2>/dev/null || df -h "$HOME"
+  echo "--- disk usage on $MINICONDA_DIR ---"
+  quota -s 2>/dev/null || df -h "$MINICONDA_DIR"
   echo "----------------------------"
 }
 

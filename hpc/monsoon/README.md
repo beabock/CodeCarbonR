@@ -34,6 +34,25 @@ before investing time in the rest.
    Doesn't touch any pre-existing R/Python modules, so it doesn't matter
    what is or isn't already on the cluster.
 
+   If `$HOME`'s quota can't fit these envs (numpy/torch/etc add up to
+   several GB -- common on shared HPC systems), point the install
+   somewhere with more room instead, e.g. project scratch storage. Set
+   this *every session*, before running `01_setup.sh`/`01b_setup_gpu.sh`
+   and before every `sbatch` submission (Slurm's default behavior
+   propagates your shell's exported environment into the job, so
+   exporting it once per session before submitting is enough --
+   `02_run_cpu_cases.sbatch`/`03_run_gpu_case.sbatch` both read the same
+   variable):
+   ```bash
+   export CODECARBONR_MINICONDA_DIR=/90daydata/<project>/<you>/miniconda3-codecarbonr
+   ```
+   Forgetting to set this consistently leaves two divergent installs
+   around (one at the default `$HOME` path, one at your chosen location)
+   with scripts silently activating whichever one they're hardcoded --
+   or not hardcoded -- to find. That's an easy way to end up debugging a
+   phantom problem in the wrong environment, so keep it set for the
+   whole session rather than only for some of these steps.
+
 3. **Run the CPU cases** (01-06):
    ```bash
    sbatch hpc/monsoon/02_run_cpu_cases.sbatch
@@ -87,3 +106,22 @@ before investing time in the rest.
   nothing meaningful in wall-clock time for workloads this small; if
   this is ever adapted for a genuinely CPU-heavy case, revisit rather
   than assuming single-threaded is always fine.
+- `render_cases.R` loops over multiple cases in *one* R session --
+  `rmarkdown::render()` runs each Rmd's chunks in that same process, not
+  a fresh one per case, despite what an earlier version of a comment in
+  that script implied. Since every case's `test.Rmd` independently calls
+  `use_r_codecarbon()` in its own setup chunk, cases after the first were
+  each triggering a *second* (or third, fourth, ...) `reticulate::
+  use_condaenv()` call in the same session. reticulate documents that
+  config can't change after Python's initialized, so a repeat call is a
+  no-op by design -- but observed on Ceres, that redundant call doesn't
+  fail, it just sometimes takes far longer than it should (seconds to
+  tens of minutes, worse under heavy node load) rather than returning
+  immediately, which is exactly what turned a 45-minute
+  `02_run_cpu_cases.sbatch` run into a `TIMEOUT` that never got past case
+  01. Fixed in `comparison/_harness/use_r_codecarbon.R` by skipping the
+  call entirely once `reticulate::py_available(initialize = FALSE)` is
+  already `TRUE`. Diagnosed via the same `pstree`/`strace` approach as
+  the BLAS issue above -- caught R blocked on a `read()` from a pipe tied
+  to a `bash -> bash -> bash -> conda` subprocess chain that had already
+  exited by the time it could be traced directly.

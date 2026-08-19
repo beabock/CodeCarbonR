@@ -25,8 +25,12 @@ export NUMEXPR_NUM_THREADS=1
 
 module load cuda
 
+# Same install location as 01_setup.sh -- see 02_run_cpu_cases.sbatch for
+# why CODECARBONR_MINICONDA_DIR needs to be `export`ed before submission,
+# not just set here.
+MINICONDA_DIR="${CODECARBONR_MINICONDA_DIR:-$HOME/miniconda3-codecarbonr}"
 # shellcheck disable=SC1091
-source "$HOME/miniconda3-codecarbonr/etc/profile.d/conda.sh"
+source "$MINICONDA_DIR/etc/profile.d/conda.sh"
 conda activate codecarbonr-r
 
 cd "$SLURM_SUBMIT_DIR"

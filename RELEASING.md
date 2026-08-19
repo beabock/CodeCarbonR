@@ -201,8 +201,16 @@ Pre-submission (in addition to the package-specific fixes above):
         interpreter discovery alone exceeds 10s before returning `FALSE`.
         Fixed by wrapping the example in `\donttest{}` in `R/setup.R` and
         regenerating `man/carbon_tracker_ready.Rd` via
-        `roxygen2::roxygenise()`. Not yet reverified with another
-        `check_win_devel()` run -- do that before submitting.
+        `roxygen2::roxygenise()` (landed in commit `6eed5f3`, not `8ded4c5`
+        as originally logged here -- that hash was actually the unrelated
+        Ceres/HPC conda-discovery fix). Reverified locally with
+        `R CMD check --as-cran` 2026-08-19: `checking examples ... OK`,
+        no >5s flag. Resubmitted to `check_win_devel()` the same day
+        (~14:00); results email arrived ~14:08 (server-side check took
+        270s): **1 NOTE, 0 warnings, 0 errors** -- only the expected
+        "conda" spelling false-positive remains. Timing NOTE confirmed
+        gone on a real bare check server, not just this machine. This
+        item is done.
 - [x] Update `NEWS.md`'s heading from `# CodeCarbonR (development version)`
       (or `0.0.0.9000`) to the real version, and `CITATION.cff`'s
       `version:`/`date-released:` to match.
