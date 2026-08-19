@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=codecarbonr-gpu
 #SBATCH --account=weeds_and_bees
-#SBATCH --exclusive
 #SBATCH --gpus=1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -12,11 +11,19 @@
 #SBATCH --error=hpc/monsoon/logs/gpu_%j.err
 # --account: see 02_run_cpu_cases.sbatch -- same reasoning, override on
 # the command line if needed.
-# --exclusive: see 02_run_cpu_cases.sbatch -- same reasoning. Case 07
-# uses the same with_emissions_tracked() pattern as case 01, so it's
-# plausibly vulnerable to the same contention-sensitive hang even though
-# it hasn't been observed here specifically (case 07 hasn't run yet at
-# all). --time bumped to give render_cases.R's retry logic room.
+# No --exclusive here (unlike 02_run_cpu_cases.sbatch) -- tried it, but
+# `sbatch` rejected the combination with "Requested node configuration is
+# not available". Ceres's GPU nodes are presumably shared multi-GPU boxes
+# where --exclusive + --gpus=1 + these cpu/mem values isn't a schedulable
+# shape. Case 07 uses the same with_emissions_tracked() pattern as case
+# 01, so it's plausibly vulnerable to the same contention-sensitive
+# reticulate race (see 02_run_cpu_cases.sbatch's comment and
+# hpc/monsoon/README.md's Notes) without that protection -- the
+# subprocess timeout/retry logic in render_cases.R is the fallback here.
+# If this hangs the same way case 01 did, the next thing to try is
+# --exclusive with a smaller/larger --mem, or asking Ceres support what
+# a schedulable exclusive+GPU request actually looks like on this
+# cluster. --time bumped to give the retry logic room either way.
 # --gpus=1 requests any GPU model. To pin a specific model (Monsoon docs
 # give k80/a100 as examples): --gpus=a100 or --gpus=k80:1. See Monsoon's
 # GPU job docs / `sinfo` for what's actually available to your account.
