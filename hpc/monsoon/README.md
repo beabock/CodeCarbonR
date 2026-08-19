@@ -73,3 +73,17 @@ before investing time in the rest.
   `nvidia-smi dmon` (SSH'd into the GPU node) or
   [Monsoon Metrics](https://metrics.hpc.nau.edu/) (NAU network/VPN
   required).
+- Both `.sbatch` scripts force `OMP_NUM_THREADS`/`OPENBLAS_NUM_THREADS`/
+  `MKL_NUM_THREADS`/`NUMEXPR_NUM_THREADS=1`. Without this, codecarbon's
+  CPU hardware detection (which pulls in numpy/BLAS) can deadlock
+  indefinitely on a futex wait during tracker construction -- observed
+  on Ceres (USDA SCINet), diagnosed via `pstree`/`strace` showing no
+  network activity and no child process, just a stuck futex wait with an
+  unusually high R thread count. Root cause: a multi-threaded BLAS
+  library's thread-pool init getting confused by Slurm's cgroup CPU
+  restriction. Confirmed fixed by capping to single-threaded BLAS/OpenMP
+  (reproduced the hang interactively, then confirmed it disappears with
+  these env vars set, before baking them into the batch scripts). Costs
+  nothing meaningful in wall-clock time for workloads this small; if
+  this is ever adapted for a genuinely CPU-heavy case, revisit rather
+  than assuming single-threaded is always fine.

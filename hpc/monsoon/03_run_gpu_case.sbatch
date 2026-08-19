@@ -13,6 +13,16 @@
 # GPU job docs / `sinfo` for what's actually available to your account.
 
 set -euo pipefail
+
+# See 02_run_cpu_cases.sbatch for why: without this, codecarbon's CPU
+# hardware detection (numpy/BLAS-backed) can deadlock on a futex wait
+# during tracker construction, from a multi-threaded BLAS library's
+# thread-pool init getting confused by Slurm's cgroup CPU restriction.
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
 module load cuda
 
 # shellcheck disable=SC1091
