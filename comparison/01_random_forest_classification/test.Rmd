@@ -67,8 +67,17 @@ test_data <- shared[shared$is_train == 0, setdiff(names(shared), "is_train")]
 
 result <- with_emissions_tracked(
   {
-    model <- ranger(y ~ ., data = train_data, num.trees = 100)
-    predictions <- predict(model, test_data)$predictions
+    # num.threads = 1 pinned explicitly, not left to ranger's RcppParallel
+    # default (auto-detects cores, "using 2 threads" observed locally).
+    # On Ceres (USDA SCINet), that default triggered the same class of
+    # bug OMP_NUM_THREADS/etc already work around for BLAS in the sbatch
+    # scripts -- a multi-threaded native library's thread pool getting
+    # stuck under Slurm's cgroup CPU restriction, worse on a heavily
+    # loaded shared node (observed hang had a node load average of 25).
+    # Those env vars don't reach RcppParallel, so it needs pinning here
+    # directly. See hpc/monsoon/README.md's Notes section.
+    model <- ranger(y ~ ., data = train_data, num.trees = 100, num.threads = 1)
+    predictions <- predict(model, test_data, num.threads = 1)$predictions
     mean(predictions == test_data$y)
   },
   country_iso_code = "USA",
@@ -96,7 +105,11 @@ X_train, y_train = train[feature_cols], train["y"]
 X_test, y_test = test[feature_cols], test["y"]
 
 with OfflineEmissionsTracker(country_iso_code="USA", output_dir="py_output") as tracker:
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    # n_jobs=1 explicit (matches sklearn's own default of None/single-
+    # threaded) -- not the observed cause of the ranger-side hang on
+    # Ceres, but pinned defensively for the same reason, so a future
+    # n_jobs=-1 edit doesn't reintroduce that class of bug on this side.
+    model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=1)
     model.fit(X_train, y_train)
     accuracy = model.score(X_test, y_test)
 
