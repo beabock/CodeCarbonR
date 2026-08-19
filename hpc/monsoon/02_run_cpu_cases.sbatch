@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=codecarbonr-cpu
+#SBATCH --account=weeds_and_bees
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -7,8 +8,12 @@
 #SBATCH --time=00:45:00
 #SBATCH --output=hpc/monsoon/logs/cpu_%j.out
 #SBATCH --error=hpc/monsoon/logs/cpu_%j.err
-# No --partition set -- Monsoon's default should be fine for a CPU-only
-# job. Add one (see `sinfo`) if your account needs it specified explicitly.
+# --account set to this project's Ceres (USDA SCINet) account -- `sbatch`
+# refuses to submit without one on this cluster. Override on the command
+# line (`sbatch --account=<other> ...`) if running under a different
+# account; a flag passed at submission takes precedence over this default.
+# No --partition set -- the default should be fine for a CPU-only job.
+# Add one (see `sinfo`) if your account needs it specified explicitly.
 
 set -euo pipefail
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=codecarbonr-gpu
+#SBATCH --account=weeds_and_bees
 #SBATCH --gpus=1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -8,6 +9,8 @@
 #SBATCH --time=00:30:00
 #SBATCH --output=hpc/monsoon/logs/gpu_%j.out
 #SBATCH --error=hpc/monsoon/logs/gpu_%j.err
+# --account: see 02_run_cpu_cases.sbatch -- same reasoning, override on
+# the command line if needed.
 # --gpus=1 requests any GPU model. To pin a specific model (Monsoon docs
 # give k80/a100 as examples): --gpus=a100 or --gpus=k80:1. See Monsoon's
 # GPU job docs / `sinfo` for what's actually available to your account.
