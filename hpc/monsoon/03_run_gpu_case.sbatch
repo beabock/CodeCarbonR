@@ -25,6 +25,10 @@ export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
+# RcppParallel/TBB override -- see 02_run_cpu_cases.sbatch for why. Case
+# 07 doesn't use ranger, but set here too for consistency in case any R
+# dependency pulls in RcppParallel indirectly.
+export RCPP_PARALLEL_NUM_THREADS=1
 
 module load cuda
 

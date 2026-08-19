@@ -28,6 +28,16 @@ export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
+# Same class of bug, different threading backend: ranger (case 01) uses
+# RcppParallel/TBB, not BLAS, so the vars above don't reach it. Pinning
+# num.threads=1 per-call in test.Rmd wasn't sufficient on its own --
+# RcppParallel's thread pool appears to be sized at first construction,
+# which a per-call argument may only cap usage of rather than prevent
+# from being created in the first place. This env var is RcppParallel's
+# own session-wide override, read when that pool is first built, so it
+# constrains pool *creation* rather than just usage. See
+# hpc/monsoon/README.md's Notes section.
+export RCPP_PARALLEL_NUM_THREADS=1
 
 # Same install location as 01_setup.sh. If you set CODECARBONR_MINICONDA_DIR
 # for that script (e.g. because $HOME's quota can't fit the conda envs),

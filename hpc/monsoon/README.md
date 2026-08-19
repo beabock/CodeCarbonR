@@ -124,4 +124,28 @@ before investing time in the rest.
   already `TRUE`. Diagnosed via the same `pstree`/`strace` approach as
   the BLAS issue above -- caught R blocked on a `read()` from a pipe tied
   to a `bash -> bash -> bash -> conda` subprocess chain that had already
-  exited by the time it could be traced directly.
+  exited by the time it could be traced directly. Not yet reconfirmed
+  with a clean end-to-end run since this fix landed -- the next hang
+  encountered (see below) turned out to be a separate issue, so this
+  one's fix is plausible but unverified in isolation.
+- Case 01's `ranger()` call hit the same *class* of bug as the BLAS one
+  above -- a multi-threaded native library's thread pool stalling under
+  Slurm's cgroup CPU restriction, worse on more heavily loaded nodes
+  (observed with node load averages of 25 and 68) -- but via a different
+  threading backend (RcppParallel/TBB, which `ranger` uses), so the
+  `OMP_NUM_THREADS`/etc vars above don't reach it. Pinning
+  `num.threads = 1` directly on the `ranger()`/`predict()` calls in
+  `test.Rmd` was tried first and was **not sufficient on its own** --
+  the hang recurred identically afterward. Current fix:
+  `RCPP_PARALLEL_NUM_THREADS=1`, RcppParallel's own env var, set
+  alongside the BLAS vars in both `.sbatch` scripts. Suspected reason
+  the per-call argument wasn't enough: RcppParallel's thread pool may be
+  sized once, at first construction, with a per-call `num.threads`
+  argument only capping how many of an already-created pool get used --
+  not preventing pool *creation* itself from spinning up more threads
+  than that. The env var is read when the pool is first built, so it
+  should constrain creation, not just usage -- but this is a plausible
+  mechanism, not confirmed against RcppParallel's source, so revisit if
+  it recurs a third time. Diagnosed identically to the two issues above:
+  `pstree`/`strace -f -tt -p <pid>` showing multiple threads in an
+  indefinite (`NULL`-timeout) `futex` wait.
