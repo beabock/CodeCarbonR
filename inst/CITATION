@@ -3,6 +3,6 @@ bibentry(
   title   = "CodeCarbonR: Track Energy Consumption and Carbon Emissions of R Code",
   author  = person("Beatrice", "Bock", email = "beabockm@gmail.com"),
   year    = "2026",
-  note    = "R package version 0.0.0.9000",
+  note    = sprintf("R package version %s", meta$Version),
   url     = "https://github.com/beabock/CodeCarbonR"
 )

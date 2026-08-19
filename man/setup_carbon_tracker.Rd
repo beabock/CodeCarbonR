@@ -33,3 +33,11 @@ after a codecarbon upgrade, that's the first thing to check. Keep the
 floor here in sync with DESCRIPTION's \code{SystemRequirements} field if it
 changes.
 }
+\examples{
+\dontrun{
+# Installs software and prompts for confirmation, so this never runs
+# under R CMD check (or any other non-interactive session) -- call it
+# once, by hand, from an interactive R console.
+setup_carbon_tracker()
+}
+}

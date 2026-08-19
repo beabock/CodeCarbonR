@@ -14,3 +14,13 @@ Reads the country energy mix data bundled with the installed codecarbon
 package. The \code{country_iso_code} argument to \code{\link[=carbon_tracker]{carbon_tracker()}} and
 \code{\link[=with_emissions_tracked]{with_emissions_tracked()}} must be one of the codes returned here.
 }
+\examples{
+\donttest{
+# Requires codecarbon to be installed (setup_carbon_tracker()); not run
+# on CRAN's check machines, which don't have it.
+if (carbon_tracker_ready()) {
+  countries <- list_carbon_tracker_countries()
+  head(countries)
+}
+}
+}

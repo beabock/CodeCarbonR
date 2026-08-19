@@ -22,3 +22,17 @@ A \code{carbon_emissions_result}: \verb{$result} holds the value of \code{expr},
 \description{
 Track emissions for a single block of code
 }
+\examples{
+\donttest{
+# Requires codecarbon to be installed (setup_carbon_tracker()); not run
+# on CRAN's check machines, which don't have it.
+if (carbon_tracker_ready()) {
+  out <- with_emissions_tracked(
+    Sys.sleep(1),
+    country_iso_code = "USA",
+    output_dir = tempdir()
+  )
+  print(out)
+}
+}
+}

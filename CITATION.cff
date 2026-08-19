@@ -8,8 +8,8 @@ authors:
 type: software
 license: MIT
 repository-code: "https://github.com/beabock/CodeCarbonR"
-version: 0.0.0.9000
-date-released: "2026-08-04"
+version: 0.1.0
+date-released: "2026-08-19"
 # Once tagged and archived on Zenodo, add the minted DOI here, e.g.:
 # doi: 10.5281/zenodo.XXXXXXX
 # and Zenodo's concept DOI (the one that always resolves to the latest

@@ -39,3 +39,16 @@ measure several phases separately, create a new \code{carbon_tracker()} per
 phase; each \verb{$stop()} still appends its own row to the same
 \code{output_dir}'s \code{emissions.csv}.
 }
+\examples{
+\donttest{
+# Requires codecarbon to be installed (setup_carbon_tracker()); not run
+# on CRAN's check machines, which don't have it.
+if (carbon_tracker_ready()) {
+  tracker <- carbon_tracker(country_iso_code = "USA", output_dir = tempdir())
+  tracker$start()
+  Sys.sleep(1)
+  emissions <- tracker$stop()
+  print(emissions)
+}
+}
+}

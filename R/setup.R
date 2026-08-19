@@ -21,6 +21,13 @@
 #' @param force Reinstall codecarbon even if it's already available.
 #' @return Invisibly, `TRUE` if codecarbon is ready to use after the call,
 #'   `FALSE` if setup was cancelled.
+#' @examples
+#' \dontrun{
+#' # Installs software and prompts for confirmation, so this never runs
+#' # under R CMD check (or any other non-interactive session) -- call it
+#' # once, by hand, from an interactive R console.
+#' setup_carbon_tracker()
+#' }
 #' @export
 setup_carbon_tracker <- function(force = FALSE) {
   if (!force && carbon_tracker_ready()) {
@@ -68,6 +75,8 @@ setup_carbon_tracker <- function(force = FALSE) {
 #'
 #' @return `TRUE` if codecarbon can be imported, `FALSE` otherwise (including
 #'   when no Python interpreter can be found at all).
+#' @examples
+#' carbon_tracker_ready()
 #' @export
 carbon_tracker_ready <- function() {
   tryCatch(reticulate::py_module_available("codecarbon"), error = function(e) FALSE)

@@ -5,6 +5,15 @@
 #' [with_emissions_tracked()] must be one of the codes returned here.
 #'
 #' @return A data frame with `iso_code` and `country_name` columns.
+#' @examples
+#' \donttest{
+#' # Requires codecarbon to be installed (setup_carbon_tracker()); not run
+#' # on CRAN's check machines, which don't have it.
+#' if (carbon_tracker_ready()) {
+#'   countries <- list_carbon_tracker_countries()
+#'   head(countries)
+#' }
+#' }
 #' @export
 list_carbon_tracker_countries <- function() {
   ensure_codecarbon_available()

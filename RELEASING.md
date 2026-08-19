@@ -124,3 +124,69 @@ guarantees on top. Frictions specific to this package:
   explaining that `codecarbon` has no R equivalent and that setup is
   opt-in, confirmed, and isolated to its own conda environment rather
   than touching the user's system Python.
+
+### 4a. Step-by-step, once you decide to go for it
+
+Pre-submission (in addition to the package-specific fixes above):
+
+- [ ] Every exported function (`setup_carbon_tracker()`, `carbon_tracker()`,
+      `with_emissions_tracked()`, `list_carbon_tracker_countries()`,
+      `carbon_tracker_ready()`) needs an `@examples` block in its roxygen
+      comment. None currently exist. Wrap any example that would call
+      `setup_carbon_tracker()`, start a tracker, or otherwise touch
+      Python/network in `\donttest{}` (runs on your machine, skipped on
+      CRAN's checks) -- e.g. show `list_carbon_tracker_countries()` or
+      `carbon_tracker_ready()` unwrapped since those don't touch Python,
+      but wrap a `with_emissions_tracked()` example in `\donttest{}`.
+- [ ] Confirm `Authors@R` includes a copyright holder role -- add `"cph"`
+      to Beatrice Bock's `role = c(...)` in `DESCRIPTION` if it's only
+      `c("aut", "cre")` currently (CRAN wants an explicit copyright holder,
+      not just author/maintainer).
+- [ ] Write `cran-comments.md` at the repo root (`.Rbuildignore` it if you
+      don't want it in the built tarball, though CRAN's web form also asks
+      for these comments directly). Cover: this is a first submission;
+      what the package does in one line; and the Python/conda point noted
+      above -- `codecarbon` has no R equivalent, `setup_carbon_tracker()`
+      is opt-in/interactive/confirmed and installs into its own isolated
+      conda environment, never touches the user's system Python, and
+      never runs during `R CMD check` (it errors intentionally in
+      non-interactive contexts, which is what the test suite checks for).
+- [ ] From R, in the package directory:
+      ```r
+      usethis::use_version("minor")   # bumps 0.0.0.9000 -> 0.1.0, tags NEWS.md
+      devtools::check(remote = TRUE, manual = TRUE)   # full local check
+      devtools::check_win_devel()      # builds on R's Windows dev servers, emails you the log
+      urlchecker::url_check()          # catches dead links in docs/README/vignette
+      ```
+      All three should come back clean (0 errors, 0 warnings, ideally 0
+      notes) before submitting. `check_win_devel()` in particular catches
+      things your local machine's R version won't.
+- [ ] Update `NEWS.md`'s heading from `# CodeCarbonR (development version)`
+      (or `0.0.0.9000`) to the real version, and `CITATION.cff`'s
+      `version:`/`date-released:` to match.
+
+Submission:
+
+- [ ] `devtools::submit_cran()` -- builds the source tarball, uploads it
+      to CRAN's submission form, and pulls maintainer info + your
+      `cran-comments.md` content into the form automatically. (Manual
+      alternative: build with `R CMD build .`, then upload the resulting
+      `.tar.gz` yourself at
+      [cran.r-project.org/submit.html](https://cran.r-project.org/submit.html).)
+- [ ] **(you)** CRAN emails a confirmation link to the maintainer address
+      in `DESCRIPTION` -- click it. The submission doesn't enter the queue
+      until confirmed.
+- [ ] Wait. CRAN's automated checks (multiple OSes/R versions) typically
+      report back within a day or two; a human CRAN team member reviews
+      after that. Total time is unpredictable -- same-day acceptances and
+      multi-week back-and-forth both happen, and a package installing
+      external software during setup (even opt-in) is exactly the kind of
+      thing that can prompt a question rather than an immediate accept.
+- [ ] If CRAN comes back with required changes: fix them, bump the patch
+      version again (e.g. `0.1.0` -> `0.1.1`), add a line to
+      `cran-comments.md` under a "Resubmission" heading explaining what
+      changed, and resubmit the same way.
+- [ ] On acceptance: tag/release on GitHub if you haven't already (Section
+      2 above), then bump `DESCRIPTION`'s version to a new `.9000`
+      development suffix (e.g. `0.1.0.9000`) so it's clear `main` is past
+      the released version.

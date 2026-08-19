@@ -67,6 +67,18 @@ CarbonTracker <- R6::R6Class(
 #' @param ... Passed to `codecarbon.OfflineEmissionsTracker`, e.g.
 #'   `measure_power_secs`, `output_dir`, `log_level`.
 #' @return A `CarbonTracker` R6 object.
+#' @examples
+#' \donttest{
+#' # Requires codecarbon to be installed (setup_carbon_tracker()); not run
+#' # on CRAN's check machines, which don't have it.
+#' if (carbon_tracker_ready()) {
+#'   tracker <- carbon_tracker(country_iso_code = "USA", output_dir = tempdir())
+#'   tracker$start()
+#'   Sys.sleep(1)
+#'   emissions <- tracker$stop()
+#'   print(emissions)
+#' }
+#' }
 #' @export
 carbon_tracker <- function(country_iso_code = NULL, project_name = "CodeCarbonR", ...) {
   CarbonTracker$new(country_iso_code = country_iso_code, project_name = project_name, ...)

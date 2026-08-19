@@ -5,4 +5,5 @@
 ^LICENSE\.md$
 ^CITATION\.cff$
 ^RELEASING\.md$
+^cran-comments\.md$
 ^emissions\.csv$

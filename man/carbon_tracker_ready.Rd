@@ -13,3 +13,6 @@ when no Python interpreter can be found at all).
 \description{
 Check whether codecarbon is installed and importable
 }
+\examples{
+carbon_tracker_ready()
+}

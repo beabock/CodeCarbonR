@@ -7,6 +7,19 @@
 #' @param ... Passed to [carbon_tracker()].
 #' @return A `carbon_emissions_result`: `$result` holds the value of `expr`,
 #'   `$emissions` holds the `carbon_emissions` object.
+#' @examples
+#' \donttest{
+#' # Requires codecarbon to be installed (setup_carbon_tracker()); not run
+#' # on CRAN's check machines, which don't have it.
+#' if (carbon_tracker_ready()) {
+#'   out <- with_emissions_tracked(
+#'     Sys.sleep(1),
+#'     country_iso_code = "USA",
+#'     output_dir = tempdir()
+#'   )
+#'   print(out)
+#' }
+#' }
 #' @export
 with_emissions_tracked <- function(expr, country_iso_code = NULL, ...) {
   tracker <- carbon_tracker(country_iso_code = country_iso_code, ...)
