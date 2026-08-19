@@ -49,7 +49,13 @@ honest record of what's actually been checked, not just the most recent.
   `carbon_tracker()` per phase instead. See `?carbon_tracker`.
 - GPU tracking (`comparison/07_gpu_neural_net`) is implemented but not
   yet validated on real GPU hardware.
-- Not yet tested on macOS/Apple Silicon.
+- macOS/Apple Silicon and Linux: the package itself installs and passes
+  `R CMD check`/`testthat` on both via GitHub Actions CI, but the
+  comparison suite (cases 01-06) has only been rendered end to end on
+  Windows so far. CI passing is a package-level signal, not evidence
+  that the comparison suite's accuracy validation holds on those
+  platforms -- don't cite this as cross-platform accuracy validation
+  without an actual comparison-suite render on Mac/Linux.
 
 See `comparison/coverage_matrix.md` for full validation status per test
 case and platform.
