@@ -4,7 +4,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-reticulate::use_condaenv("r-codecarbon", required = TRUE)
+source("../_harness/use_r_codecarbon.R")
+use_r_codecarbon()
 ```
 
 ## Workload
