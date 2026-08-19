@@ -1,0 +1,50 @@
+* using log directory 'C:/Users/beabo/NAU/CodeCarbonR/CodeCarbonR.Rcheck'
+* using R version 4.3.0 (2023-04-21 ucrt)
+* using platform: x86_64-w64-mingw32 (64-bit)
+* R was compiled by
+    gcc.exe (GCC) 12.2.0
+    GNU Fortran (GCC) 12.2.0
+* running under: Windows 11 x64 (build 26200)
+* using session charset: UTF-8
+* using option '--as-cran'
+* checking for file 'CodeCarbonR/DESCRIPTION' ... OK
+* this is package 'CodeCarbonR' version '0.1.0'
+* package encoding: UTF-8
+* checking CRAN incoming feasibility ... [18s] NOTE
+Maintainer: 'Beatrice Bock <beabockm@gmail.com>'
+
+New submission
+
+Found the following (possibly) invalid URLs:
+  URL: https://github.com/beabock/CodeCarbonR
+    From: DESCRIPTION
+          inst/CITATION
+    Status: 404
+    Message: Not Found
+  URL: https://github.com/beabock/CodeCarbonR/issues
+    From: DESCRIPTION
+    Status: 404
+    Message: Not Found
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking serialization versions ... OK
+* checking whether package 'CodeCarbonR' can be installed ... [15s] OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... NOTE
+unable to verify current time
+* checking 'build' directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ...
