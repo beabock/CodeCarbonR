@@ -128,24 +128,51 @@ before investing time in the rest.
   with a clean end-to-end run since this fix landed -- the next hang
   encountered (see below) turned out to be a separate issue, so this
   one's fix is plausible but unverified in isolation.
-- Case 01's `ranger()` call hit the same *class* of bug as the BLAS one
-  above -- a multi-threaded native library's thread pool stalling under
-  Slurm's cgroup CPU restriction, worse on more heavily loaded nodes
-  (observed with node load averages of 25 and 68) -- but via a different
-  threading backend (RcppParallel/TBB, which `ranger` uses), so the
-  `OMP_NUM_THREADS`/etc vars above don't reach it. Pinning
-  `num.threads = 1` directly on the `ranger()`/`predict()` calls in
-  `test.Rmd` was tried first and was **not sufficient on its own** --
-  the hang recurred identically afterward. Current fix:
-  `RCPP_PARALLEL_NUM_THREADS=1`, RcppParallel's own env var, set
-  alongside the BLAS vars in both `.sbatch` scripts. Suspected reason
-  the per-call argument wasn't enough: RcppParallel's thread pool may be
-  sized once, at first construction, with a per-call `num.threads`
-  argument only capping how many of an already-created pool get used --
-  not preventing pool *creation* itself from spinning up more threads
-  than that. The env var is read when the pool is first built, so it
-  should constrain creation, not just usage -- but this is a plausible
-  mechanism, not confirmed against RcppParallel's source, so revisit if
-  it recurs a third time. Diagnosed identically to the two issues above:
-  `pstree`/`strace -f -tt -p <pid>` showing multiple threads in an
-  indefinite (`NULL`-timeout) `futex` wait.
+- Case 01 hung again after both the `num.threads = 1` (on `ranger()`/
+  `predict()`) and `RCPP_PARALLEL_NUM_THREADS=1` fixes below -- **both
+  were misdiagnoses**, not fixes. Every attempt produced the exact same
+  5-thread `pstree` shape regardless of which fix was applied, which
+  should have been the tell earlier: if `ranger`/RcppParallel were
+  actually spinning up more threads than the allocation, that count
+  would have changed between attempts. It didn't. `strace` alone wasn't
+  enough to catch this -- it only shows syscall names (`futex`), not
+  which function is blocked. `gdb -p <pid>` / `thread apply all bt` on
+  the live hang showed the real picture: a thread blocked in
+  `PyThread_acquire_lock_timed`, reached via reticulate's
+  `call_r_function()` (Python calling back into R), alongside
+  reticulate's own `eventPollingWorker` background thread -- the
+  mechanism reticulate uses so a background Python thread (codecarbon's
+  own periodic power-sampling thread, running continuously the whole
+  time a tracker is `$start()`'d) can safely notify R's main thread even
+  while it's busy with something else. This points to a race condition
+  in reticulate's own R/Python cross-thread coordination, not a
+  ranger/BLAS/RcppParallel thread-count problem at all -- consistent
+  with the exact same code succeeding in under a second interactively
+  earlier (before the node got loaded up), and only hanging on nodes
+  with load averages of 25 and 68. A race that reliably works under
+  light contention and reliably fails under severe contention is a
+  classic timing-window bug: severe scheduling delays widen the window
+  where the race actually gets hit. `num.threads`/`RCPP_PARALLEL_NUM_
+  THREADS` left in place regardless (harmless, and still a reasonable
+  BLAS/RcppParallel default for a shared cluster), but they aren't what
+  actually matters here. Two real mitigations, since there's no fix
+  available to us inside `CodeCarbonR`/this repo (the race lives in
+  reticulate's C++, not here):
+  1. `--exclusive` on both `.sbatch` scripts -- avoids sharing a node
+     with other users' jobs, which is what was actually driving the
+     load average up. Costs more allocation-hours (billed for the whole
+     node); drop it if that's not worth it for your allocation.
+  2. `render_cases.R` now renders each case in its own fresh `Rscript`
+     subprocess with a hard timeout (5 min) and retries (3 attempts),
+     rather than in-process in a loop. An R-level timeout
+     (`setTimeLimit()`/`withTimeout()`) can't recover from this kind of
+     hang, since the deadlock is in native code that never reaches an R
+     interrupt check -- only killing the OS process from outside
+     actually works. This also happens to fully retire the redundant-
+     `use_condaenv()`-call issue above for free, since every case now
+     gets a genuinely fresh R/Python session, which was that fix's
+     original (previously unconfirmed) premise anyway.
+  If hangs persist even with both of these, it's worth filing upstream
+  against `rstudio/reticulate` -- "R/Python cross-thread notification
+  deadlocks under severe scheduling contention" is a legitimate,
+  reproducible finding, not user error.

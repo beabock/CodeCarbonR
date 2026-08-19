@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=codecarbonr-cpu
 #SBATCH --account=weeds_and_bees
+#SBATCH --exclusive
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=8G
-#SBATCH --time=00:45:00
+#SBATCH --time=02:00:00
 #SBATCH --output=hpc/monsoon/logs/cpu_%j.out
 #SBATCH --error=hpc/monsoon/logs/cpu_%j.err
 # --account set to this project's Ceres (USDA SCINet) account -- `sbatch`
@@ -14,6 +15,15 @@
 # account; a flag passed at submission takes precedence over this default.
 # No --partition set -- the default should be fine for a CPU-only job.
 # Add one (see `sinfo`) if your account needs it specified explicitly.
+# --exclusive: reserves the whole node rather than sharing it with other
+# users' jobs. See hpc/monsoon/README.md's Notes -- observed hangs
+# correlated strongly with node load average (25, then 68), consistent
+# with a reticulate cross-thread race that's far more likely to trigger
+# under heavy scheduling contention. This costs more allocation-hours
+# (billed for the whole node, not just 4 CPUs) -- drop it if that's not
+# worth it for your allocation, but expect hangs to recur more often
+# without it. --time bumped accordingly to give render_cases.R's
+# per-case timeout/retry logic room to work even in a bad case.
 
 set -euo pipefail
 

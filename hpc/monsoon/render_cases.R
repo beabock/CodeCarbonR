@@ -5,6 +5,19 @@
 #   Rscript hpc/monsoon/render_cases.R                          # all CPU cases
 #   Rscript hpc/monsoon/render_cases.R 07_gpu_neural_net         # just the GPU case
 #   Rscript hpc/monsoon/render_cases.R 01_random_forest_classification 03_linear_model
+#
+# Each case renders in its own fresh Rscript subprocess (not in-process),
+# with a timeout and a few retries. This is deliberate, not just caution:
+# a suspected reticulate cross-thread race (an R/Python interrupt-
+# notification deadlock, not a ranger/BLAS/RcppParallel thread-count issue
+# -- see hpc/monsoon/README.md's Notes) has been observed to hang a render
+# indefinitely, worse under heavy node CPU contention. An R-level timeout
+# (setTimeLimit()/withTimeout()) wouldn't recover from this, since the hang
+# is in native code that never reaches an R interrupt check -- only
+# killing the OS process from outside actually works. A fresh subprocess
+# per case also sidesteps the earlier redundant-use_condaenv()-call issue
+# for free, since every case now genuinely gets its own fresh R/Python
+# session (which used to be this script's -- incorrect -- assumption).
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -19,16 +32,32 @@ default_cases <- c(
 
 cases <- if (length(args) > 0) args else default_cases
 
-# Same CONDA_EXE-aware lookup every test.Rmd's setup chunk uses. Note this
-# for loop's rmarkdown::render() calls all run in *this* R session, not a
-# fresh one per case -- so this call and every case's own setup-chunk call
-# after it are hitting the same session. use_r_codecarbon() itself guards
-# against the redundant repeat calls that produces (see its own docs for
-# why that guard exists and matters here); see
-# comparison/_harness/use_r_codecarbon.R for why plain use_condaenv()
-# isn't reliable in the first place.
-source("comparison/_harness/use_r_codecarbon.R")
-use_r_codecarbon()
+PER_CASE_TIMEOUT_SECS <- 300
+MAX_ATTEMPTS <- 3
+
+# Renders one case's test.Rmd in a brand-new Rscript process, with a hard
+# timeout. Returns a list(ok, status, output); output is the subprocess's
+# captured stdout+stderr, printed by the caller only on failure so a
+# successful run's log stays uncluttered.
+render_case_once <- function(rmd_path) {
+  # A temp script file, rather than passing R code via -e directly, sidesteps
+  # a Windows-specific system2() bug where embedded double-quotes in a -e
+  # argument get mangled by Windows' CreateProcess-style command-line
+  # reconstruction (POSIX systems pass argv directly with no shell involved,
+  # so this wouldn't necessarily hit on Linux/Ceres either way, but a plain
+  # file path argument has no quoting concerns to get wrong on any platform).
+  script_file <- tempfile(fileext = ".R")
+  on.exit(unlink(script_file), add = TRUE)
+  writeLines(sprintf("rmarkdown::render(%s, quiet = TRUE)", deparse(rmd_path)), script_file)
+  output <- tryCatch(
+    system2("Rscript", shQuote(script_file),
+            timeout = PER_CASE_TIMEOUT_SECS, stdout = TRUE, stderr = TRUE),
+    error = function(e) structure(conditionMessage(e), status = 1L)
+  )
+  status <- attr(output, "status")
+  if (is.null(status)) status <- 0L
+  list(ok = identical(status, 0L), status = status, output = output)
+}
 
 summary_rows <- list()
 
@@ -46,19 +75,32 @@ for (case in cases) {
   unlink(file.path(dir, "test.html"))
   unlink(file.path(dir, "test_files"), recursive = TRUE)
 
-  t0 <- Sys.time()
-  ok <- tryCatch(
-    {
-      rmarkdown::render(file.path(dir, "test.Rmd"), quiet = TRUE)
-      TRUE
-    },
-    error = function(e) {
-      cat("  RENDER FAILED:", conditionMessage(e), "\n")
-      FALSE
+  rmd_path <- file.path(dir, "test.Rmd")
+  ok <- FALSE
+  for (attempt in seq_len(MAX_ATTEMPTS)) {
+    t0 <- Sys.time()
+    res <- render_case_once(rmd_path)
+    elapsed <- round(as.numeric(Sys.time() - t0, units = "secs"), 1)
+
+    if (res$ok) {
+      cat("  render succeeded in", elapsed, "s (attempt", attempt, "of", MAX_ATTEMPTS, ")\n")
+      ok <- TRUE
+      break
     }
-  )
-  elapsed <- round(as.numeric(Sys.time() - t0, units = "secs"), 1)
-  cat("  render", if (ok) "succeeded" else "failed", "in", elapsed, "s\n")
+
+    timed_out <- identical(res$status, 124L)
+    cat("  render", if (timed_out) "TIMED OUT" else "FAILED",
+        "after", elapsed, "s (attempt", attempt, "of", MAX_ATTEMPTS, ")\n")
+    cat("  --- subprocess output (last 20 lines) ---\n")
+    cat(paste0("  ", utils::tail(res$output, 20)), sep = "\n")
+    cat("  ------------------------------------------\n")
+
+    if (attempt < MAX_ATTEMPTS) {
+      unlink(file.path(dir, "r_output"), recursive = TRUE)
+      unlink(file.path(dir, "py_output"), recursive = TRUE)
+      Sys.sleep(5)
+    }
+  }
 
   if (!ok) {
     summary_rows[[case]] <- data.frame(case = case, phase = NA, status = "RENDER FAILED")

@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=codecarbonr-gpu
 #SBATCH --account=weeds_and_bees
+#SBATCH --exclusive
 #SBATCH --gpus=1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=00:30:00
+#SBATCH --time=01:00:00
 #SBATCH --output=hpc/monsoon/logs/gpu_%j.out
 #SBATCH --error=hpc/monsoon/logs/gpu_%j.err
 # --account: see 02_run_cpu_cases.sbatch -- same reasoning, override on
 # the command line if needed.
+# --exclusive: see 02_run_cpu_cases.sbatch -- same reasoning. Case 07
+# uses the same with_emissions_tracked() pattern as case 01, so it's
+# plausibly vulnerable to the same contention-sensitive hang even though
+# it hasn't been observed here specifically (case 07 hasn't run yet at
+# all). --time bumped to give render_cases.R's retry logic room.
 # --gpus=1 requests any GPU model. To pin a specific model (Monsoon docs
 # give k80/a100 as examples): --gpus=a100 or --gpus=k80:1. See Monsoon's
 # GPU job docs / `sinfo` for what's actually available to your account.
