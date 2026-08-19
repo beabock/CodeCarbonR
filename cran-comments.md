@@ -34,9 +34,19 @@ natively.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes (checked with `R CMD check --as-cran` on
-Windows; see `RELEASING.md` for details of this package's release
-process).
+0 errors | 0 warnings | 0 notes with `R CMD check --as-cran` on this
+machine (Windows; see `RELEASING.md` for details of this package's
+release process).
+
+`check_win_devel()` (R-devel, Windows) additionally reported 2 NOTEs:
+
+* Possibly misspelled word "conda" in DESCRIPTION -- this is correct as
+  spelled; `conda` is the name of the package manager CodeCarbonR's
+  Python backend is installed into, not a typo.
+* The `carbon_tracker_ready()` example exceeded the 10s check threshold
+  on that machine, because it has no Python configured and
+  `reticulate`'s interpreter discovery is slow in that case. Fixed by
+  wrapping the example in `\donttest{}`.
 
 ## Downstream dependencies
 

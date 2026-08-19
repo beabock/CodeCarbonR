@@ -19,7 +19,19 @@ default_cases <- c(
 
 cases <- if (length(args) > 0) args else default_cases
 
-reticulate::use_condaenv("r-codecarbon", required = TRUE)
+# Plain use_condaenv() asks reticulate to *discover* r-codecarbon by
+# searching for a "conda" binary on PATH -- but `conda activate` (from
+# conda.sh) defines `conda` as a shell function, not a PATH executable,
+# so Sys.which("conda") finds nothing, and reticulate's hardcoded guesses
+# (~/miniconda3, ~/anaconda3, ...) miss any custom install path. CONDA_EXE
+# is a real env var that conda.sh exports on source, independent of PATH
+# or install location, so use it directly when available.
+conda_exe <- Sys.getenv("CONDA_EXE", unset = NA)
+if (!is.na(conda_exe) && nzchar(conda_exe)) {
+  reticulate::use_condaenv("r-codecarbon", conda = conda_exe, required = TRUE)
+} else {
+  reticulate::use_condaenv("r-codecarbon", required = TRUE)
+}
 
 summary_rows <- list()
 

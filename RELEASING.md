@@ -8,22 +8,34 @@ service are outside what I can do for you.
 
 ## 1. Pre-release checklist
 
-- [ ] `DESCRIPTION`: bump `Version:` from `0.0.0.9000` to a real release
+- [x] `DESCRIPTION`: bump `Version:` from `0.0.0.9000` to a real release
       version, e.g. `0.1.0` (semantic versioning; this is a first public
       release, so `0.1.0` rather than `1.0.0` is reasonable unless you
-      consider the API stable).
-- [ ] Review/expand `NEWS.md` (a starter draft exists) and retitle its
+      consider the API stable). Done 2026-08-19.
+- [x] Review/expand `NEWS.md` (a starter draft exists) and retitle its
       `# CodeCarbonR (development version)` heading to the real release
-      version once you bump `DESCRIPTION`.
-- [ ] Run the full check locally one more time:
+      version once you bump `DESCRIPTION`. Heading retitled; content
+      itself was already substantive, not just a stub.
+- [x] Run the full check locally one more time:
       `R CMD build .` then `R CMD check --no-manual <tarball>` -- should
-      be 0 errors, 0 warnings, ideally 0 notes.
-- [ ] Confirm CI is green on `main` for all three OSes
-      (`.github/workflows/R-CMD-check.yaml`).
-- [ ] Update `CITATION.cff`'s `version:` and `date-released:` to match.
+      be 0 errors, 0 warnings, ideally 0 notes. Ran `--as-cran` (stricter
+      than `--no-manual`) 2026-08-19: 0 errors/warnings/notes on every
+      package-level check (Rd, namespace, examples, tests, vignettes,
+      URLs). The only ERROR/WARNINGs left are this machine's local LaTeX
+      toolchain (a flaky CTAN mirror blocked one font package tinytex
+      needed for the PDF manual) and a missing local `qpdf` binary --
+      both irrelevant to CRAN's own build servers, which are fully
+      provisioned. Also ran `urlchecker::url_check()`: all URLs OK.
+- [x] Confirm CI is green on `main` for all three OSes
+      (`.github/workflows/R-CMD-check.yaml`). Confirmed 2026-08-19.
+- [x] Update `CITATION.cff`'s `version:` and `date-released:` to match.
+      Also fixed `inst/CITATION`, which had `0.0.0.9000` hardcoded into
+      its `note` field -- now pulls `meta$Version` dynamically so
+      `citation("CodeCarbonR")` never goes stale again.
 - [ ] Update `comparison/coverage_matrix.md` if case 07 (GPU) has been
       validated by then -- don't ship a release implying GPU coverage
-      that hasn't actually been run.
+      that hasn't actually been run. Still not validated as of
+      2026-08-19; see `hpc/monsoon/README.md` for the Monsoon run plan.
 
 ## 2. Tag and create the GitHub release **(you, or ask me to run `gh` for you)**
 
@@ -129,20 +141,25 @@ guarantees on top. Frictions specific to this package:
 
 Pre-submission (in addition to the package-specific fixes above):
 
-- [ ] Every exported function (`setup_carbon_tracker()`, `carbon_tracker()`,
+- [x] Every exported function (`setup_carbon_tracker()`, `carbon_tracker()`,
       `with_emissions_tracked()`, `list_carbon_tracker_countries()`,
       `carbon_tracker_ready()`) needs an `@examples` block in its roxygen
-      comment. None currently exist. Wrap any example that would call
-      `setup_carbon_tracker()`, start a tracker, or otherwise touch
-      Python/network in `\donttest{}` (runs on your machine, skipped on
-      CRAN's checks) -- e.g. show `list_carbon_tracker_countries()` or
-      `carbon_tracker_ready()` unwrapped since those don't touch Python,
-      but wrap a `with_emissions_tracked()` example in `\donttest{}`.
-- [ ] Confirm `Authors@R` includes a copyright holder role -- add `"cph"`
+      comment. Added 2026-08-19. One correction to the plan as originally
+      written: `list_carbon_tracker_countries()` actually does call
+      `ensure_codecarbon_available()` internally, so (unlike
+      `carbon_tracker_ready()`, which is genuinely safe unwrapped) it
+      needed `\donttest{}` too, not an unwrapped example.
+      `setup_carbon_tracker()` got `\dontrun{}` since it can never run
+      non-interactively under any CI. The first `--as-cran` run also
+      caught a real bug: the `carbon_tracker()`/`with_emissions_tracked()`
+      examples didn't pass `output_dir`, so on any machine that has
+      codecarbon installed they wrote `emissions.csv` into the check
+      directory -- fixed by adding `output_dir = tempdir()`.
+- [x] Confirm `Authors@R` includes a copyright holder role -- add `"cph"`
       to Beatrice Bock's `role = c(...)` in `DESCRIPTION` if it's only
       `c("aut", "cre")` currently (CRAN wants an explicit copyright holder,
-      not just author/maintainer).
-- [ ] Write `cran-comments.md` at the repo root (`.Rbuildignore` it if you
+      not just author/maintainer). Done.
+- [x] Write `cran-comments.md` at the repo root (`.Rbuildignore` it if you
       don't want it in the built tarball, though CRAN's web form also asks
       for these comments directly). Cover: this is a first submission;
       what the package does in one line; and the Python/conda point noted
@@ -151,7 +168,8 @@ Pre-submission (in addition to the package-specific fixes above):
       conda environment, never touches the user's system Python, and
       never runs during `R CMD check` (it errors intentionally in
       non-interactive contexts, which is what the test suite checks for).
-- [ ] From R, in the package directory:
+      Written and `.Rbuildignore`d.
+- [x] From R, in the package directory:
       ```r
       usethis::use_version("minor")   # bumps 0.0.0.9000 -> 0.1.0, tags NEWS.md
       devtools::check(remote = TRUE, manual = TRUE)   # full local check
@@ -161,7 +179,31 @@ Pre-submission (in addition to the package-specific fixes above):
       All three should come back clean (0 errors, 0 warnings, ideally 0
       notes) before submitting. `check_win_devel()` in particular catches
       things your local machine's R version won't.
-- [ ] Update `NEWS.md`'s heading from `# CodeCarbonR (development version)`
+
+      Done manually rather than via `usethis::use_version()` (version was
+      already bumped by hand). `R CMD check --as-cran` run instead of
+      `devtools::check(remote = TRUE, manual = TRUE)` -- equivalent
+      package-level coverage, but note it didn't check reverse
+      dependencies (moot for a first submission with none). `urlchecker::url_check()`:
+      all URLs OK. `check_win_devel()` submitted 2026-08-19 09:2X; results
+      email to beabockm@gmail.com ~15-30 min later -- **check that email
+      and address anything it flags before submitting.**
+
+      Results email arrived 2026-08-19 18:53: 2 NOTEs, 0 warnings, 0
+      errors on R-devel/Windows.
+      - "Possibly misspelled words in DESCRIPTION: conda (9:35)" -- false
+        positive, `conda` isn't in the spellchecker's dictionary but is a
+        real, correctly-spelled term. Left as-is; noted in
+        `cran-comments.md` so it doesn't look overlooked.
+      - `carbon_tracker_ready()` example took 13.09s (>10s threshold) --
+        real issue, not a flake: on a machine with no Python configured
+        (like a fresh check server), `reticulate::py_module_available()`'s
+        interpreter discovery alone exceeds 10s before returning `FALSE`.
+        Fixed by wrapping the example in `\donttest{}` in `R/setup.R` and
+        regenerating `man/carbon_tracker_ready.Rd` via
+        `roxygen2::roxygenise()`. Not yet reverified with another
+        `check_win_devel()` run -- do that before submitting.
+- [x] Update `NEWS.md`'s heading from `# CodeCarbonR (development version)`
       (or `0.0.0.9000`) to the real version, and `CITATION.cff`'s
       `version:`/`date-released:` to match.
 
