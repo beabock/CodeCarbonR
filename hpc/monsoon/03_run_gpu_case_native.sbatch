@@ -19,6 +19,13 @@
 
 set -euo pipefail
 
+# See 02_run_cpu_cases_native.sbatch for why.
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export RCPP_PARALLEL_NUM_THREADS=1
+
 R_MODULE="${CODECARBONR_R_MODULE:-R/4.5.3}"
 PYTHON_MODULE="${CODECARBONR_PYTHON_MODULE:-anaconda3/2025.06}"
 RLIBS_DIR="${CODECARBONR_RLIBS_DIR:-$HOME/R-codecarbonr-libs}"

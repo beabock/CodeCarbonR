@@ -23,6 +23,23 @@
 
 set -euo pipefail
 
+# Same reasoning as 02_run_cpu_cases.sbatch (the conda-based version):
+# without this, a multi-threaded native library's thread pool (BLAS,
+# RcppParallel/TBB) can auto-detect and spin up a thread per core, which
+# under Slurm's cgroup CPU restriction is exactly the kind of
+# oversubscription that produces indefinite futex-wait hangs. Missing
+# from this script until now -- observed on Monsoon as a hang at
+# "[setup] CPU Tracking..." with 15+ threads in gdb's `thread apply all
+# bt` (vs. the 5-thread signature of the reticulate cross-thread race
+# these vars don't address), reproduced even after fixing the separate
+# missing-Python-module issue below, which was a real but insufficient
+# fix on its own.
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export RCPP_PARALLEL_NUM_THREADS=1
+
 R_MODULE="${CODECARBONR_R_MODULE:-R/4.5.3}"
 PYTHON_MODULE="${CODECARBONR_PYTHON_MODULE:-anaconda3/2025.06}"
 RLIBS_DIR="${CODECARBONR_RLIBS_DIR:-$HOME/R-codecarbonr-libs}"
