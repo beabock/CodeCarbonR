@@ -9,6 +9,19 @@ CPU nodes expose real hardware power measurement (RAPL) or fall back to
 the same CPU-load x TDP estimate Windows uses. Check that first (step 1)
 before investing time in the rest.
 
+**Two setup paths, pick one:** the steps below (`01_setup.sh`, a
+self-contained conda bootstrap) work as written on most clusters. On
+Monsoon specifically, `conda create`/`mamba create` hang indefinitely --
+`/dev/shm` isn't mounted on login or compute nodes, which breaks Python's
+`multiprocessing` module (used internally by conda's package-linking
+step), and this isn't something a regular user can fix. Use
+`01_setup_native.sh` instead (steps 2-4 below have `_native` sibling
+versions of each script) -- it uses Monsoon's own R module plus a plain
+`python -m venv` instead of building fresh conda environments, sidestepping
+the issue entirely. See this file's Notes section for the full diagnosis
+if you hit the same thing on a different cluster and want to confirm it's
+the same root cause before reaching for the same fix.
+
 ## Steps
 
 1. **Clone and check RAPL access**, from a login node:
@@ -53,17 +66,35 @@ before investing time in the rest.
    phantom problem in the wrong environment, so keep it set for the
    whole session rather than only for some of these steps.
 
+   **On Monsoon, use `bash hpc/monsoon/01_setup_native.sh` instead** (see
+   the callout above) -- loads Monsoon's own `R` module and installs
+   packages via `install.packages()`/CRAN, plus a plain Python venv via
+   `python -m venv` + `pip install`, entirely avoiding `conda create`.
+   Configurable the same way, via `CODECARBONR_R_MODULE`/
+   `CODECARBONR_PYTHON_MODULE` (which module to load) and
+   `CODECARBONR_RLIBS_DIR`/`CODECARBONR_VENV_DIR` (where to put the R
+   library and Python venv -- default to `$HOME`, which had plenty of
+   room when this was tested, override the same way as above if not).
+
 3. **Run the CPU cases** (01-06):
    ```bash
    sbatch hpc/monsoon/02_run_cpu_cases.sbatch
    ```
+   Or, if you used `01_setup_native.sh`:
+   ```bash
+   sbatch hpc/monsoon/02_run_cpu_cases_native.sbatch
+   ```
    Check progress with `squeue --me`; output lands in
-   `hpc/monsoon/logs/cpu_<jobid>.out` and a results CSV in
-   `hpc/monsoon/logs/results_<timestamp>.csv`.
+   `hpc/monsoon/logs/cpu_<jobid>.out` (or `cpu_native_<jobid>.out`) and a
+   results CSV in `hpc/monsoon/logs/results_<timestamp>.csv`.
 
 4. **Run the GPU case** (07):
    ```bash
    sbatch hpc/monsoon/03_run_gpu_case.sbatch
+   ```
+   Or, after `bash hpc/monsoon/01b_setup_gpu_native.sh`:
+   ```bash
+   sbatch hpc/monsoon/03_run_gpu_case_native.sbatch
    ```
    `--gpus=1` requests any available GPU model; edit the script to pin a
    specific one (e.g. `--gpus=a100`) if needed. If this is the first time
@@ -79,6 +110,32 @@ before investing time in the rest.
 
 ## Notes
 
+- **Monsoon: `conda create`/`mamba create` hang indefinitely.** `/dev/shm`
+  isn't mounted as a filesystem on either login (`wind`) or compute nodes
+  (confirmed `df -h /dev/shm` returns "no file systems processed" on
+  both) -- and Python's `multiprocessing` module needs `/dev/shm` for its
+  shared-memory synchronization primitives (`sem_open()`), which glibc
+  can't fall back from. conda's package-*linking* step (not solving or
+  downloading -- those complete fine) uses `multiprocessing` internally,
+  so it hangs there specifically, every time, reproducibly. Confirmed via
+  `ps`: the `conda`/`mamba` process itself barely accumulates CPU time
+  relative to wall-clock elapsed (e.g. 2 minutes of CPU time over 27
+  minutes of wall-clock), alongside an idle
+  `multiprocessing.resource_tracker` child process -- the concrete tell
+  for this specific failure mode. Tried and ruled out, in order: (1)
+  `mamba` instead of `conda` -- this mambaforge build (24.3.0) still
+  routes transaction *execution* through the same underlying conda Python
+  code, only the solver is the faster C++ one, so it hit the identical
+  hang; (2) `CONDA_PKGS_DIRS` pointed at the same filesystem as the
+  target env, in case a cross-filesystem copy was triggering the
+  multiprocessing path specifically -- no change; (3) running from a
+  compute node instead of the login node -- `/dev/shm` is missing
+  identically on both, so no difference, though this did confirm compute
+  nodes have outbound internet (a `curl` to `conda.anaconda.org`
+  returned `302`). This isn't fixable without root (mounting/enabling
+  `/dev/shm` is a sysadmin action), so `01_setup_native.sh` (and its
+  `_native` sibling scripts) avoid `conda create` entirely instead --
+  see the callout near the top of this file.
 - Steps 3 and 4 don't need internet -- everything they use was installed
   in step 2. If a compute node genuinely has no outbound internet at all
   (common on HPC clusters), this matters: don't try to install anything
