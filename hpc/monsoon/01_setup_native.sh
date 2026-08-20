@@ -44,6 +44,14 @@ echo
 echo "=== R packages -> $RLIBS_DIR ==="
 mkdir -p "$RLIBS_DIR"
 export R_LIBS_USER="$RLIBS_DIR"
+# install.packages() failing for one package doesn't make Rscript exit
+# non-zero -- it just warns and moves on -- so `set -euo pipefail` alone
+# won't catch a partial failure here. Verify explicitly and stop() (which
+# does exit non-zero) if anything's still missing after the install
+# attempt. A package needing real memory to compile (RcppEigen
+# especially -- observed OOM-killed under a low default `srun --pty bash`
+# allocation with no explicit --mem) is exactly the kind of failure this
+# guards against silently sailing past.
 Rscript -e '
   options(repos = c(CRAN = "https://cloud.r-project.org"))
   needed <- c("rmarkdown", "knitr", "reticulate", "ranger", "dplyr",
@@ -51,10 +59,21 @@ Rscript -e '
   have <- rownames(installed.packages())
   missing <- setdiff(needed, have)
   if (length(missing) > 0) install.packages(missing)
+  still_missing <- setdiff(needed, rownames(installed.packages()))
+  if (length(still_missing) > 0) {
+    stop(
+      "Failed to install: ", paste(still_missing, collapse = ", "),
+      ". Common cause: not enough memory to compile a package (RcppEigen ",
+      "especially) -- rerun with more memory, e.g. `srun --mem=8G ",
+      "--cpus-per-task=4 --pty bash` instead of a bare `srun --pty bash`.",
+      call. = FALSE
+    )
+  }
   # Pandoc via a plain download, not conda -- rmarkdown needs it, and this
   # sidesteps the same conda issue this whole script exists to avoid.
   if (!rmarkdown::pandoc_available()) rmarkdown::install_pandoc()
-  cat("pandoc:", if (rmarkdown::pandoc_available()) "OK" else "MISSING", "\n")
+  if (!rmarkdown::pandoc_available()) stop("pandoc install failed.", call. = FALSE)
+  cat("pandoc: OK\n")
 '
 
 echo
@@ -62,6 +81,9 @@ echo "=== Installing CodeCarbonR itself from this clone ==="
 Rscript -e '
   options(repos = c(CRAN = "https://cloud.r-project.org"))
   install.packages(".", repos = NULL, type = "source")
+  if (!requireNamespace("CodeCarbonR", quietly = TRUE)) {
+    stop("CodeCarbonR install failed -- see the install.packages() output above.", call. = FALSE)
+  }
 '
 
 echo
