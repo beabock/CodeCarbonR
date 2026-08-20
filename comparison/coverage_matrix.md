@@ -26,6 +26,24 @@ every comparison case has been rendered on every OS. Extending this table
 with real Linux/Mac renders of the comparison suite itself is separate,
 follow-up work.
 
+**Linux HPC rendering was attempted on two clusters (Ceres/USDA SCINet,
+Monsoon/NAU HPC) and did not reach a clean successful render on either.**
+This is not evidence of a bug in CodeCarbonR itself -- every hang traced
+down to a specific cause was in `reticulate`'s R/Python interop plumbing
+interacting badly with shared/contended HPC infrastructure (a conda
+`/dev/shm` limitation, a `python/3.14.3` compatibility gap, unconstrained
+BLAS/RcppParallel thread pools under Slurm's cgroup restriction, and a
+suspected reticulate cross-thread race sensitive to node load), not in
+`R/` or the comparison Rmds. Each is documented in detail in
+`hpc/monsoon/README.md`'s Notes section, including what was tried and
+ruled out for each. Given the package's own correctness is independently
+covered by passing CI (`R CMD check`/`testthat` on Windows, Mac, and
+Linux) and by the Windows comparison-suite validation above, further
+chasing these environment-specific hangs was deprioritized rather than
+resolved -- revisit only if a specific downstream need (e.g. a paper
+reviewer requiring real Linux comparison-suite numbers) justifies the
+time.
+
 ## Rationale
 
 **01 random_forest_classification** is the direct analog of CodeCarbon's
@@ -82,9 +100,16 @@ rather than local hardware. Framework: R `torch` vs Python `PyTorch` (both
 bind directly to libtorch, keeping the two sides independent rather than
 routing one through the other the way `keras3` would via reticulate). The
 code is complete but has not been run on GPU hardware -- neither the dev
-environment nor CI for this repo has a GPU. It needs one validation run on
-real GPU hardware, and its status here updated to `validated`, before the
-paper leans on it for a cross-platform claim.
+environment nor CI for this repo has a GPU, and the Ceres/Monsoon HPC
+attempts (see above) never got far enough to actually reach GPU-node
+testing before being deprioritized due to unrelated CPU-side environment
+issues. It needs one validation run on real GPU hardware, and its status
+here updated to `validated`, before the paper leans on it for a
+cross-platform claim -- but this is optional/stretch, not a package
+requirement: `codecarbon` treats GPU tracking as opt-in and degrades to
+"no GPU found" cleanly (confirmed repeatedly across every render this
+round, Windows and both HPC clusters alike), so CodeCarbonR already
+handles the no-GPU case correctly without this validation.
 
 ## Gaps not yet covered
 
@@ -95,7 +120,12 @@ paper leans on it for a cross-platform claim.
   don't extrapolate Windows+Linux parity to Mac without evidence.
 - **07 gpu_neural_net has not been run at all** (see table above and its
   own rationale entry) -- built but unvalidated, distinct from the Mac gap
-  above.
+  above. Not a package requirement either way -- see its rationale entry.
+- **Linux HPC rendering of cases 01-06 was attempted and not completed**
+  (see the paragraph above the Rationale section) -- distinct from the
+  Mac and GPU gaps: this is about the *comparison suite* hitting
+  HPC-environment-specific `reticulate` issues, not about CodeCarbonR
+  itself, which remains validated on Linux at the package level via CI.
 - A high-memory, low-CPU case (e.g. large in-memory matrix operations
   without heavy disk I/O) is not represented; 05 covers disk I/O but not
   memory pressure specifically. Worth adding if memory-driven RAM power
