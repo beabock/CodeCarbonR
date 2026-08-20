@@ -5,6 +5,10 @@ authors:
   - family-names: Bock
     given-names: Beatrice
     email: beabockm@gmail.com
+  - family-names: Paterson
+    given-names: Rachel
+  - family-names: van Bramer
+    given-names: Dylan
 type: software
 license: MIT
 repository-code: "https://github.com/beabock/CodeCarbonR"
