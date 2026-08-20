@@ -29,8 +29,22 @@
 
 set -euo pipefail
 
+# python/3.14.3 (the standalone Python module) is too new for reticulate's
+# CPython-internals-dependent R/Python cross-thread coordination as of
+# reticulate 1.46.0 -- confirmed by direct comparison: with
+# python/3.14.3, carbon_tracker()$start() hung deterministically (3/3
+# tries) at the exact same point ("[setup] CPU Tracking...") on a
+# completely idle node (load average 0.00, ruling out contention); with
+# anaconda3/2025.06's bundled Python 3.13.13 instead, the identical code
+# completed in under a second. anaconda3 is flagged deprecated in favor
+# of miniforge3 in `module avail` output here, but its bundled Python
+# works and hasn't been swapped for miniforge3's -- revisit if anaconda3
+# is ever actually removed. Loading this module auto-activates its
+# `base` conda env, but nothing here calls `conda create` (the actual
+# broken thing, see below), so that's harmless -- CODECARBONR_VENV_PYTHON
+# takes priority over any conda env in use_r_codecarbon() regardless.
 R_MODULE="${CODECARBONR_R_MODULE:-R/4.5.3}"
-PYTHON_MODULE="${CODECARBONR_PYTHON_MODULE:-python/3.14.3}"
+PYTHON_MODULE="${CODECARBONR_PYTHON_MODULE:-anaconda3/2025.06}"
 RLIBS_DIR="${CODECARBONR_RLIBS_DIR:-$HOME/R-codecarbonr-libs}"
 VENV_DIR="${CODECARBONR_VENV_DIR:-$HOME/venv-codecarbonr}"
 
@@ -88,11 +102,16 @@ Rscript -e '
 
 echo
 echo "=== Python venv -> $VENV_DIR ==="
-if [ ! -d "$VENV_DIR" ]; then
+if [ -d "$VENV_DIR" ]; then
+  echo "Already exists, reusing it -- delete $VENV_DIR first if you've"
+  echo "changed CODECARBONR_PYTHON_MODULE and need it rebuilt from a"
+  echo "different Python (this script won't do that for you)."
+else
   python3 -m venv "$VENV_DIR"
 fi
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
+echo "venv Python: $(python3 --version)"
 pip install --no-cache-dir --upgrade pip
 # setuptools>=81 dropped pkg_resources, which codecarbon still imports at
 # module load time -- see .github/workflows/R-CMD-check.yaml for the same

@@ -25,10 +25,11 @@ echo "=== Adding CUDA-enabled torch to the Python venv ==="
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
 # The Python module version this venv was built from (see
-# CODECARBONR_PYTHON_MODULE / 01_setup_native.sh) may be too new to have a
-# published torch wheel yet -- if this fails, check
+# CODECARBONR_PYTHON_MODULE / 01_setup_native.sh -- anaconda3/2025.06's
+# 3.13.13 by default, chosen for reticulate compatibility, not GPU
+# reasons) should have a published torch wheel, but if this fails, check
 # https://pytorch.org/get-started/locally/ for what's actually supported
-# and consider rebuilding the venv against an older Python module instead.
+# and consider rebuilding the venv against a different Python module.
 pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121
 deactivate
 

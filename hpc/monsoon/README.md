@@ -136,6 +136,24 @@ the same root cause before reaching for the same fix.
   `/dev/shm` is a sysadmin action), so `01_setup_native.sh` (and its
   `_native` sibling scripts) avoid `conda create` entirely instead --
   see the callout near the top of this file.
+- **Monsoon: `python/3.14.3` (the standalone Python module) is too new
+  for `reticulate`'s R/Python cross-thread coordination.** With that
+  module, `carbon_tracker()$start()` hung deterministically -- 3/3
+  attempts, same exact point (`[setup] CPU Tracking...`) -- on a
+  completely idle node (`uptime` showed `load average: 0.00`, ruling out
+  the node-contention explanation that fit the Ceres hangs). Direct
+  comparison confirmed it: same code, same everything else, swapped only
+  to `anaconda3/2025.06`'s bundled Python 3.13.13 instead, and
+  `$start()` completed in under a second. `01_setup_native.sh` now
+  defaults `CODECARBONR_PYTHON_MODULE` to `anaconda3/2025.06`
+  accordingly. (That module is flagged deprecated in favor of
+  `miniforge3` in this cluster's `module avail` output, but its Python
+  works and hasn't been swapped out -- revisit if anaconda3 is ever
+  actually removed.) If you already ran `01_setup_native.sh` with the
+  old `python/3.14.3` default, the venv at `$CODECARBONR_VENV_DIR`
+  (`$HOME/venv-codecarbonr` unless overridden) needs deleting and
+  rebuilding -- the script reuses an existing venv directory rather than
+  detecting a Python-version mismatch and rebuilding it for you.
 - Steps 3 and 4 don't need internet -- everything they use was installed
   in step 2. If a compute node genuinely has no outbound internet at all
   (common on HPC clusters), this matters: don't try to install anything
