@@ -20,10 +20,14 @@
 set -euo pipefail
 
 R_MODULE="${CODECARBONR_R_MODULE:-R/4.5.3}"
+PYTHON_MODULE="${CODECARBONR_PYTHON_MODULE:-anaconda3/2025.06}"
 RLIBS_DIR="${CODECARBONR_RLIBS_DIR:-$HOME/R-codecarbonr-libs}"
 VENV_DIR="${CODECARBONR_VENV_DIR:-$HOME/venv-codecarbonr}"
 
 module load "$R_MODULE"
+# See 02_run_cpu_cases_native.sbatch -- the venv's python binary needs
+# its base Python module's environment loaded to actually run correctly.
+module load "$PYTHON_MODULE"
 export R_LIBS_USER="$RLIBS_DIR"
 export CODECARBONR_VENV_PYTHON="$VENV_DIR/bin/python"
 

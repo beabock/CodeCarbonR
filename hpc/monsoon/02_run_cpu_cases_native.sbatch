@@ -24,10 +24,18 @@
 set -euo pipefail
 
 R_MODULE="${CODECARBONR_R_MODULE:-R/4.5.3}"
+PYTHON_MODULE="${CODECARBONR_PYTHON_MODULE:-anaconda3/2025.06}"
 RLIBS_DIR="${CODECARBONR_RLIBS_DIR:-$HOME/R-codecarbonr-libs}"
 VENV_DIR="${CODECARBONR_VENV_DIR:-$HOME/venv-codecarbonr}"
 
 module load "$R_MODULE"
+# The venv's python binary still needs its base Python installation's
+# module environment loaded (shared libraries etc.) to run correctly --
+# omitting this reproduced the exact hang 01_setup_native.sh's Notes
+# entry describes for python/3.14.3, even after switching the venv to
+# anaconda3/2025.06's Python, because the module supplying that Python
+# was never actually loaded in this job's environment.
+module load "$PYTHON_MODULE"
 export R_LIBS_USER="$RLIBS_DIR"
 export CODECARBONR_VENV_PYTHON="$VENV_DIR/bin/python"
 
