@@ -13,12 +13,13 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Track Energy Consumption and Carbon Emissions of R Code">
 <meta name="description" content="Wraps the Python codecarbon package via reticulate to measure the energy consumption and estimated carbon emissions of R code. Provides a self-contained setup routine that installs codecarbon into a dedicated conda environment, and an R-facing tracker API for measuring a block of code or a longer-running session.">
 <meta property="og:description" content="Wraps the Python codecarbon package via reticulate to measure the energy consumption and estimated carbon emissions of R code. Provides a self-contained setup routine that installs codecarbon into a dedicated conda environment, and an R-facing tracker API for measuring a block of code or a longer-running session.">
+<meta property="og:image" content="https://beabock.github.io/CodeCarbonR/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">CodeCarbonR</a>
 
@@ -53,11 +54,14 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="codecarbonr">CodeCarbonR<a class="anchor" aria-label="anchor" href="#codecarbonr"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="codecarbonr">CodeCarbonR<a class="anchor" aria-label="anchor" href="#codecarbonr"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
-<p>Only 1.9% of papers published in the journal <em>Environmental Data Science</em> report the carbon footprint of their own computational methods, even though the field studies the environment. Python has <a href="https://github.com/mlco2/codecarbon" class="external-link">codecarbon</a> and a handful of other tools for closing that gap; R didn’t have one. CodeCarbonR wraps codecarbon via <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> so R users can track the energy consumption and estimated carbon emissions of their own code in a couple of lines, with the same rigor.</p>
+<p>Only 1.9% of papers published in the journal <em>Environmental Data Science</em> report the carbon footprint of their own computational methods. Python has <a href="https://github.com/mlco2/codecarbon" class="external-link">codecarbon</a> and a handful of other tools for closing that gap; R didn’t have one. CodeCarbonR wraps codecarbon via <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> so R users can track the energy consumption and estimated carbon emissions of their own code in a couple of lines, with the same rigor.</p>
+<p><img src="reference/figures/validation-plot.png" alt="Bar chart comparing R and Python wall-clock duration across six paired validation workloads" width="100%"></p>
 <div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>

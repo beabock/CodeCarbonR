@@ -1,13 +1,16 @@
 # CodeCarbonR
 
 Only 1.9% of papers published in the journal *Environmental Data
-Science* report the carbon footprint of their own computational methods,
-even though the field studies the environment. Python has
-[codecarbon](https://github.com/mlco2/codecarbon) and a handful of other
-tools for closing that gap; R didn’t have one. CodeCarbonR wraps
-codecarbon via [reticulate](https://rstudio.github.io/reticulate/) so R
-users can track the energy consumption and estimated carbon emissions of
-their own code in a couple of lines, with the same rigor.
+Science* report the carbon footprint of their own computational methods.
+Python has [codecarbon](https://github.com/mlco2/codecarbon) and a
+handful of other tools for closing that gap; R didn’t have one.
+CodeCarbonR wraps codecarbon via
+[reticulate](https://rstudio.github.io/reticulate/) so R users can track
+the energy consumption and estimated carbon emissions of their own code
+in a couple of lines, with the same rigor.
+
+![Bar chart comparing R and Python wall-clock duration across six paired
+validation workloads](reference/figures/validation-plot.png)
 
 ## Setup
 
