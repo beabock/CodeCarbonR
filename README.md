@@ -6,7 +6,7 @@
 <!-- badges: end -->
 
 Only 1.9% of papers published in the journal *Environmental Data Science*
-report the carbon footprint of their own computational methods. Python has
+report the carbon footprint of their own computational methods, even though the field studies the environment. Python has
 [codecarbon](https://github.com/mlco2/codecarbon) and a handful of other
 tools for closing that gap; R didn't have one. CodeCarbonR wraps
 codecarbon via [reticulate](https://rstudio.github.io/reticulate/) so R
