@@ -1,0 +1,27 @@
+url: https://beabock.github.io/CodeCarbonR/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#2E7D32"
+    link-color: "#2E7D32"
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+
+reference:
+- title: Setup
+  desc: Install the Python backend once per machine, and check it's ready
+  contents:
+  - setup_carbon_tracker
+  - carbon_tracker_ready
+- title: Track emissions
+  desc: Measure a block of code, or a longer-running/multi-phase session
+  contents:
+  - with_emissions_tracked
+  - carbon_tracker
+- title: Reference data
+  contents:
+  - list_carbon_tracker_countries

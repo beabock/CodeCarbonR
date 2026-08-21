@@ -12,7 +12,7 @@ Description: Wraps the Python 'codecarbon' package via 'reticulate' to
     tracker API for measuring a block of code or a longer-running
     session.
 License: MIT + file LICENSE
-URL: https://github.com/beabock/CodeCarbonR
+URL: https://beabock.github.io/CodeCarbonR/, https://github.com/beabock/CodeCarbonR
 BugReports: https://github.com/beabock/CodeCarbonR/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -22,8 +22,10 @@ Imports:
     reticulate
 Suggests:
     knitr,
+    pkgdown,
     rmarkdown,
     testthat (>= 3.0.0)
+Config/Needs/website: rmarkdown
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 SystemRequirements: Python (>= 3.9); codecarbon Python package (>= 2.2.2),

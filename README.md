@@ -1,8 +1,18 @@
 # CodeCarbonR
 
-Track the energy consumption and estimated carbon emissions of R code, by
-wrapping the Python [codecarbon](https://github.com/mlco2/codecarbon)
-package via [reticulate](https://rstudio.github.io/reticulate/).
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/beabock/CodeCarbonR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/beabock/CodeCarbonR/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+<!-- badges: end -->
+
+Only 1.9% of papers published in the journal *Environmental Data Science*
+report the carbon footprint of their own computational methods, even
+though the field studies environmental impact for a living. Python has
+[codecarbon](https://github.com/mlco2/codecarbon) and a handful of other
+tools for closing that gap; R didn't have one. CodeCarbonR wraps
+codecarbon via [reticulate](https://rstudio.github.io/reticulate/) so R
+users can track the energy consumption and estimated carbon emissions of
+their own code in a couple of lines, with the same rigor.
 
 ## Setup
 
@@ -61,3 +71,10 @@ an estimate based on CPU load and the CPU's rated TDP rather than a real
 measurement. `carbon_emissions` objects report which mode was actually used
 via `cpu_tracking`, so this is visible at a glance rather than silently
 assumed.
+
+## Learn more
+
+The [quickstart vignette](https://beabock.github.io/CodeCarbonR/articles/quickstart.html)
+is a five-minute walkthrough covering setup, tracking a block of code, and
+reading the result. See `comparison/coverage_matrix.md` in the repository
+for what's been validated against codecarbon directly, on which platforms.
