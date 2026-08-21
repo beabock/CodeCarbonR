@@ -12,7 +12,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/beabock/CodeCarbonR/blob/v0.1.0/inst/CITATION)
+[`inst/CITATION`](https://github.com/beabock/CodeCarbonR/blob/main/inst/CITATION)
 
 Bock B, Paterson R, van Bramer D (2026). *CodeCarbonR: Track Energy
 Consumption and Carbon Emissions of R Code*. R package version 0.1.0,
