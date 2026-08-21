@@ -3,6 +3,7 @@
 ## Authors
 
 - **Beatrice Bock**. Author, maintainer, copyright holder.
+  [](https://orcid.org/0000-0003-2240-9360)
 
 - **Rachel Paterson**. Author.
 
