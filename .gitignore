@@ -19,3 +19,4 @@ comparison/**/*.md
 hpc/monsoon/logs/
 docs
 pkgdown
+/*.log
