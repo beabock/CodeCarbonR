@@ -3,6 +3,7 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/beabock/CodeCarbonR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/beabock/CodeCarbonR/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/beabock/CodeCarbonR/blob/main/LICENSE.md)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22049425.svg)](https://doi.org/10.5281/zenodo.22049425)
 <!-- badges: end -->
 
 Only 1.9% of papers published in the journal *Environmental Data Science*
