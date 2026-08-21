@@ -2,9 +2,11 @@ url: https://beabock.github.io/CodeCarbonR/
 
 template:
   bootstrap: 5
+  bootswatch: minty
   bslib:
     primary: "#2E7D32"
-    link-color: "#2E7D32"
+    link-color: "#1B5E20"
+    headings-color: "#1B5E20"
 
 navbar:
   structure:

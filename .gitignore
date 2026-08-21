@@ -18,3 +18,4 @@ comparison/**/*.md
 !comparison/coverage_matrix.md
 hpc/monsoon/logs/
 docs
+pkgdown

@@ -14,6 +14,8 @@ codecarbon via [reticulate](https://rstudio.github.io/reticulate/) so R
 users can track the energy consumption and estimated carbon emissions of
 their own code in a couple of lines, with the same rigor.
 
+<img src="man/figures/validation-plot.png" alt="Bar chart comparing R and Python wall-clock duration across six paired validation workloads" width="100%" />
+
 ## Setup
 
 codecarbon runs in a dedicated conda environment, installed on first use:
