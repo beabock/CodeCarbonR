@@ -2,7 +2,8 @@ Package: CodeCarbonR
 Title: Track Energy Consumption and Carbon Emissions of R Code
 Version: 0.1.0
 Authors@R: c(
-    person("Beatrice", "Bock", email = "beabockm@gmail.com", role = c("aut", "cre", "cph")),
+    person("Beatrice", "Bock", email = "beabockm@gmail.com", role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0003-2240-9360")),
     person("Rachel", "Paterson", role = "aut"),
     person("Dylan", "van Bramer", role = "aut"))
 Description: Wraps the Python 'codecarbon' package via 'reticulate' to

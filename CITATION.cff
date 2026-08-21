@@ -5,6 +5,7 @@ authors:
   - family-names: Bock
     given-names: Beatrice
     email: beabockm@gmail.com
+    orcid: "https://orcid.org/0000-0003-2240-9360"
   - family-names: Paterson
     given-names: Rachel
   - family-names: van Bramer
@@ -13,7 +14,7 @@ type: software
 license: MIT
 repository-code: "https://github.com/beabock/CodeCarbonR"
 version: 0.1.0
-date-released: "2026-08-19"
+date-released: "2026-08-21"
 # Once tagged and archived on Zenodo, add the minted DOI here, e.g.:
 # doi: 10.5281/zenodo.XXXXXXX
 # and Zenodo's concept DOI (the one that always resolves to the latest

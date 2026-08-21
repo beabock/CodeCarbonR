@@ -2,7 +2,8 @@ bibentry(
   bibtype = "Manual",
   title   = "CodeCarbonR: Track Energy Consumption and Carbon Emissions of R Code",
   author  = c(
-    person("Beatrice", "Bock", email = "beabockm@gmail.com"),
+    person("Beatrice", "Bock", email = "beabockm@gmail.com",
+           comment = c(ORCID = "0000-0003-2240-9360")),
     person("Rachel", "Paterson"),
     person("Dylan", "van Bramer")
   ),
