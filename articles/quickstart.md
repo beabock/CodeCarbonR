@@ -1,0 +1,147 @@
+# Quickstart
+
+CodeCarbonR measures how much energy an R computation used and estimates
+the CO2 it’s responsible for, by wrapping the Python
+[codecarbon](https://github.com/mlco2/codecarbon) package. This page is
+a five-minute walkthrough: install it, track one block of code, and read
+the result. It doesn’t try to explain codecarbon’s own measurement
+internals in depth – see [codecarbon’s
+docs](https://docs.codecarbon.io/) for that.
+
+## One-time setup
+
+codecarbon is a Python package, so it needs a Python environment.
+[`setup_carbon_tracker()`](https://beabock.github.io/CodeCarbonR/reference/setup_carbon_tracker.md)
+handles that for you: it installs Miniconda if you don’t already have
+it, creates a conda environment named `r-codecarbon`, and installs
+codecarbon into it. Nothing is installed without you confirming it
+first.
+
+``` r
+
+library(CodeCarbonR)
+setup_carbon_tracker()
+```
+
+You only need to run this once per machine. After that,
+[`library(CodeCarbonR)`](https://beabock.github.io/CodeCarbonR/) finds
+the `r-codecarbon` environment automatically.
+
+## Track a block of code
+
+Wrap whatever you want measured in
+[`with_emissions_tracked()`](https://beabock.github.io/CodeCarbonR/reference/with_emissions_tracked.md),
+and pass a 3-letter `country_iso_code` – carbon intensity varies
+enormously by country’s grid mix, so this is required rather than
+defaulted:
+
+``` r
+
+result <- with_emissions_tracked(
+  {
+    Sys.sleep(2)
+    sum(1:1e7)
+  },
+  country_iso_code = "USA"
+)
+```
+
+Don’t know your country’s code?
+[`list_carbon_tracker_countries()`](https://beabock.github.io/CodeCarbonR/reference/list_carbon_tracker_countries.md)
+returns every code codecarbon recognizes, with the matching country
+name:
+
+``` r
+
+countries <- list_carbon_tracker_countries()
+head(countries)
+#>   iso_code            country_name
+#> 1      AFG             Afghanistan
+#> 2      ALB                 Albania
+#> 3      DZA                 Algeria
+#> ...
+```
+
+## Reading the result
+
+[`with_emissions_tracked()`](https://beabock.github.io/CodeCarbonR/reference/with_emissions_tracked.md)
+returns a `carbon_emissions_result`: `$result` is whatever your code
+block returned, and printing the whole object shows the emissions
+summary.
+
+``` r
+
+result
+#> Carbon emissions: 4.26e-06 kg CO2e
+#> Energy consumed:  1.15e-05 kWh
+#> Duration:         2.1 s
+#> CPU tracking:     estimated (CPU load x TDP)
+
+result$result
+#> [1] 50000005000000
+```
+
+The `cpu_tracking` line matters more than it might look: it tells you
+whether the CPU figure is a real hardware measurement or an estimate.
+codecarbon measures CPU power directly via RAPL on Linux (when readable
+without root) and via Intel Power Gadget on Windows and Intel Macs.
+Power Gadget was discontinued by Intel in December 2023 and is no longer
+downloadable, so on most current Windows machines codecarbon falls back
+to an estimate based on CPU load times the CPU’s rated TDP instead of a
+real measurement. CodeCarbonR surfaces which mode was actually used
+rather than silently reporting a number without telling you how it was
+derived.
+
+## Tracking several phases separately
+
+For a longer-running job, or one you want to break into phases measured
+independently, use
+[`carbon_tracker()`](https://beabock.github.io/CodeCarbonR/reference/carbon_tracker.md)
+directly instead of
+[`with_emissions_tracked()`](https://beabock.github.io/CodeCarbonR/reference/with_emissions_tracked.md).
+Each `$start()`/`$stop()` pair appends one row to `emissions.csv`:
+
+``` r
+
+data_tracker <- carbon_tracker(country_iso_code = "USA", output_dir = "emissions_log")
+data_tracker$start()
+# ... load/prepare data ...
+data_emissions <- data_tracker$stop()
+
+training_tracker <- carbon_tracker(country_iso_code = "USA", output_dir = "emissions_log")
+training_tracker$start()
+# ... train a model ...
+training_emissions <- training_tracker$stop()
+```
+
+Note that’s *two* tracker instances, one per phase, not one instance
+restarted. Restarting a single tracker instance after `$stop()` doesn’t
+give you an independent measurement for the second phase – see
+[`?carbon_tracker`](https://beabock.github.io/CodeCarbonR/reference/carbon_tracker.md)
+for why, and `output_dir` if you want the CSV to land somewhere other
+than the working directory.
+
+## How accurate is this?
+
+CodeCarbonR is a thin wrapper: the numbers come from codecarbon itself,
+not from anything CodeCarbonR computes independently. The package’s repo
+includes a validation suite (`comparison/`) that runs matched R and
+Python workloads side by side and diffs CodeCarbonR’s output against
+codecarbon called directly from Python, across several workload shapes
+(ML training, data wrangling, long-running simulations, large file I/O,
+multi-phase tracking). See `comparison/README.md` and
+`comparison/coverage_matrix.md` in the repository for what’s been
+validated and on which platforms.
+
+## Where to go next
+
+- [`?carbon_tracker`](https://beabock.github.io/CodeCarbonR/reference/carbon_tracker.md)
+  and
+  [`?with_emissions_tracked`](https://beabock.github.io/CodeCarbonR/reference/with_emissions_tracked.md)
+  for the full argument list (including `output_dir`,
+  `measure_power_secs`, `log_level`, and anything else accepted by
+  codecarbon’s `OfflineEmissionsTracker`).
+- [`?list_carbon_tracker_countries`](https://beabock.github.io/CodeCarbonR/reference/list_carbon_tracker_countries.md)
+  for the supported country codes.
+- [codecarbon’s own documentation](https://docs.codecarbon.io/) for how
+  the underlying measurement actually works.
