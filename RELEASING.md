@@ -239,6 +239,10 @@ Submission:
 - [x] **(you)** CRAN emails a confirmation link to the maintainer address
       in `DESCRIPTION` -- click it. The submission doesn't enter the queue
       until confirmed.
+- [x] Resubmission (2026-08-24) cleared the automated incoming pretest --
+      "package was uploaded to CRAN" confirmation received, meaning it
+      actually entered the processing pipeline this time rather than
+      being blocked before human review like the first attempt.
 - [ ] Wait. CRAN's automated checks (multiple OSes/R versions) typically
       report back within a day or two; a human CRAN team member reviews
       after that. Total time is unpredictable -- same-day acceptances and
