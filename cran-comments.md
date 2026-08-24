@@ -1,8 +1,31 @@
 # CRAN comments
 
+## Resubmission
+
+CRAN's incoming pretest (2026-08-21) flagged 1 NOTE on Windows and 2 on
+Debian:
+
+* Possibly misspelled word "conda" in DESCRIPTION -- correct as spelled,
+  see below. No change made.
+* Debian only: `tests` NOTE, "Running R code in 'testthat.R' had CPU time
+  3.4 times elapsed time." Root cause: `tests/testthat/test-setup.R`
+  calls `carbon_tracker_ready()` unguarded (deliberately -- it verifies
+  graceful behavior with no Python configured, which is exactly CRAN's
+  situation), and that call forces `reticulate`'s interpreter-discovery
+  machinery to run, which can spin up background threads during the
+  search on a machine with no Python at all. Not this package's own test
+  code doing anything improper. Fixed by adding `testthat::skip_on_cran()`
+  to that one test -- it still runs everywhere else (local development,
+  CI on Windows/Mac/Linux via GitHub Actions), just not on CRAN's check
+  machines specifically, since eliminating a policy-adjacent NOTE
+  deterministically is preferable to relying on a reviewer accepting an
+  explanation for something a one-line skip resolves cleanly.
+
 ## Submission
 
-This is the first submission of CodeCarbonR to CRAN.
+This is a new package. The previous submission attempt was blocked by
+CRAN's automated incoming pretest before reaching human review; see
+Resubmission above for what changed.
 
 CodeCarbonR wraps the Python `codecarbon` package (via `reticulate`) to
 measure the energy consumption and estimated carbon emissions of R code.
