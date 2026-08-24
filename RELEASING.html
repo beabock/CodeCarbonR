@@ -129,11 +129,25 @@
 </li>
 <li><p><label><input type="checkbox" checked>Update <code>NEWS.md</code>’s heading from <code># CodeCarbonR (development version)</code> (or <code>0.0.0.9000</code>) to the real version, and <code>CITATION.cff</code>’s <code>version:</code>/<code>date-released:</code> to match.</label></p></li>
 </ul><p>Submission:</p>
-<ul class="task-list"><li><label><input type="checkbox"><code>devtools::submit_cran()</code> – builds the source tarball, uploads it to CRAN’s submission form, and pulls maintainer info + your <code>cran-comments.md</code> content into the form automatically. (Manual alternative: build with <code>R CMD build .</code>, then upload the resulting <code>.tar.gz</code> yourself at <a href="https://cran.r-project.org/submit.html" class="external-link">cran.r-project.org/submit.html</a>.)</label></li>
-<li><label><input type="checkbox"><strong>(you)</strong> CRAN emails a confirmation link to the maintainer address in <code>DESCRIPTION</code> – click it. The submission doesn’t enter the queue until confirmed.</label></li>
-<li><label><input type="checkbox">Wait. CRAN’s automated checks (multiple OSes/R versions) typically report back within a day or two; a human CRAN team member reviews after that. Total time is unpredictable – same-day acceptances and multi-week back-and-forth both happen, and a package installing external software during setup (even opt-in) is exactly the kind of thing that can prompt a question rather than an immediate accept.</label></li>
-<li><label><input type="checkbox">If CRAN comes back with required changes: fix them, bump the patch version again (e.g. <code>0.1.0</code> -&gt; <code>0.1.1</code>), add a line to <code>cran-comments.md</code> under a “Resubmission” heading explaining what changed, and resubmit the same way.</label></li>
-<li><label><input type="checkbox">On acceptance: tag/release on GitHub if you haven’t already (Section 2 above), then bump <code>DESCRIPTION</code>’s version to a new <code>.9000</code> development suffix (e.g. <code>0.1.0.9000</code>) so it’s clear <code>main</code> is past the released version.</label></li>
+<ul class="task-list"><li>
+<p><label><input type="checkbox" checked><code>devtools::submit_cran()</code> – builds the source tarball, uploads it to CRAN’s submission form, and pulls maintainer info + your <code>cran-comments.md</code> content into the form automatically. (Manual alternative: build with <code>R CMD build .</code>, then upload the resulting <code>.tar.gz</code> yourself at <a href="https://cran.r-project.org/submit.html" class="external-link">cran.r-project.org/submit.html</a>.)</label></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>First <span class="fu">attempt</span> (<span class="dv">2026-08-21</span>) was blocked by CRAN<span class="st">'s automated incoming</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="st">pretest before reaching human review -- 1 NOTE on Windows ("conda"</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="st">spelling, expected/false-positive), 2 on Debian (same conda NOTE,</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="st">plus a real one: `tests/testthat/test-setup.R` had "CPU time 3.4x</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="st">elapsed time", traced to `carbon_tracker_ready()`'</span>s unguarded call</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>forcing <span class="st">`</span><span class="at">reticulate</span><span class="st">`'s interpreter-discovery machinery to spin up</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="st">threads on a Python-less check machine). Fixed by adding</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="st">`skip_on_cran()` to that one test (kept running everywhere else);</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="st">`cran-comments.md` updated with a Resubmission section. No version</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="st">bump -- the blocked attempt never reached a human reviewer or</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="st">entered the actual queue, so standard practice doesn'</span>t call <span class="cf">for</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>one. Resubmitted same day, confirmation email clicked.</span></code></pre></div>
+</li>
+<li><p><label><input type="checkbox" checked><strong>(you)</strong> CRAN emails a confirmation link to the maintainer address in <code>DESCRIPTION</code> – click it. The submission doesn’t enter the queue until confirmed.</label></p></li>
+<li><p><label><input type="checkbox">Wait. CRAN’s automated checks (multiple OSes/R versions) typically report back within a day or two; a human CRAN team member reviews after that. Total time is unpredictable – same-day acceptances and multi-week back-and-forth both happen, and a package installing external software during setup (even opt-in) is exactly the kind of thing that can prompt a question rather than an immediate accept.</label></p></li>
+<li><p><label><input type="checkbox">If CRAN comes back with required changes: fix them, bump the patch version again (e.g. <code>0.1.0</code> -&gt; <code>0.1.1</code>), add a line to <code>cran-comments.md</code> under a “Resubmission” heading explaining what changed, and resubmit the same way.</label></p></li>
+<li><p><label><input type="checkbox">On acceptance: tag/release on GitHub if you haven’t already (Section 2 above), then bump <code>DESCRIPTION</code>’s version to a new <code>.9000</code> development suffix (e.g. <code>0.1.0.9000</code>) so it’s clear <code>main</code> is past the released version.</label></p></li>
 </ul></div>
 </div>
 </div>

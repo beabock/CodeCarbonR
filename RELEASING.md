@@ -247,6 +247,21 @@ alternative: build with `R CMD build .`, then upload the resulting
 `.tar.gz` yourself at
 [cran.r-project.org/submit.html](https://cran.r-project.org/submit.html).)
 
+``` R
+First attempt (2026-08-21) was blocked by CRAN's automated incoming
+pretest before reaching human review -- 1 NOTE on Windows ("conda"
+spelling, expected/false-positive), 2 on Debian (same conda NOTE,
+plus a real one: `tests/testthat/test-setup.R` had "CPU time 3.4x
+elapsed time", traced to `carbon_tracker_ready()`'s unguarded call
+forcing `reticulate`'s interpreter-discovery machinery to spin up
+threads on a Python-less check machine). Fixed by adding
+`skip_on_cran()` to that one test (kept running everywhere else);
+`cran-comments.md` updated with a Resubmission section. No version
+bump -- the blocked attempt never reached a human reviewer or
+entered the actual queue, so standard practice doesn't call for
+one. Resubmitted same day, confirmation email clicked.
+```
+
 **(you)** CRAN emails a confirmation link to the maintainer address in
 `DESCRIPTION` – click it. The submission doesn’t enter the queue until
 confirmed.
