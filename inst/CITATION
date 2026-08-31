@@ -4,7 +4,8 @@ bibentry(
   author  = c(
     person("Beatrice", "Bock", email = "beabockm@gmail.com",
            comment = c(ORCID = "0000-0003-2240-9360")),
-    person("Rachel", "Paterson"),
+    person("Rachel", "Peterson", email = "rachel.peterson.5683@gmail.com",
+            comment = c(ORCID = "0009-0007-2048-8268")),
     person("Dylan", "van Bramer")
   ),
   year    = "2026",
