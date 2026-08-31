@@ -5,7 +5,7 @@ Authors@R: c(
     person("Beatrice", "Bock", email = "beabockm@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0003-2240-9360")),
     person("Rachel", "Peterson", email = "rachel.peterson.5683@gmail.com", role = "aut",
-            commend = c(ORCID = "0009-0007-2048-8268")),
+            comment = c(ORCID = "0009-0007-2048-8268")),
     person("Dylan", "van Bramer", role = "aut"))
 Description: Wraps the Python 'codecarbon' package via 'reticulate' to
     measure the energy consumption and estimated carbon emissions of R
