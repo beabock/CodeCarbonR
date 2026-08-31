@@ -32,16 +32,28 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="logo.png" class="logo" alt=""><h1>NA</h1>
-      <small class="dont-index">Source: <a href="https://github.com/beabock/CodeCarbonR/blob/main/LICENSE.md" class="external-link"><code>LICENSE.md</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/beabock/CodeCarbonR/blob/main/.github/CONTRIBUTING.md" class="external-link"><code>.github/CONTRIBUTING.md</code></a></small>
     </div>
 
-
-<p>MIT License</p>
-<p>Copyright (c) 2026 Beatrice Bock</p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
-<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
-<p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
-
+<div class="section level2">
+<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a></h2>
+<p>Contributions are welcome! To get started:</p>
+<ol style="list-style-type: decimal"><li>Fork the repo and clone your fork.</li>
+<li>Install development dependencies:</li>
+</ol><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span>   <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_deps</span><span class="op">(</span>dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<ol start="3" style="list-style-type: decimal"><li>Make your changes in <code>R/</code>. If you add or modify exported functions, update the roxygen2 documentation and run:</li>
+</ol><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span>   <span class="fu">devtools</span><span class="fu">::</span><span class="fu">document</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal"><li>Add tests in <code>tests/testthat/</code> for any new behavior. Tests that require the <code>r-codecarbon</code> conda environment should use <code>skip_if_not()</code> so they don’t fail in environments without it set up.</li>
+<li>Before opening a PR, run:</li>
+</ol><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span>   <span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span>
+<span>   <span class="fu">devtools</span><span class="fu">::</span><span class="fu">check</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<ol start="6" style="list-style-type: decimal"><li>Add a bullet to <code>NEWS.md</code> describing your change.</li>
+<li>Open a pull request against <code>main</code> describing the change and, if relevant, any validation against <code>codecarbon</code> (see <code>comparison/coverage_matrix.md</code>).</li>
+</ol><p>Bug reports and feature requests are welcome via <a href="https://github.com/beabock/CodeCarbonR/issues" class="external-link">GitHub Issues</a>.</p>
+</div>
 
   </main></div>
 
