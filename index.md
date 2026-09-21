@@ -85,3 +85,15 @@ is a five-minute walkthrough covering setup, tracking a block of code,
 and reading the result. See `comparison/coverage_matrix.md` in the
 repository for what’s been validated against codecarbon directly, on
 which platforms.
+
+## Citation
+
+The paper this package accompanies is available as a preprint:
+
+Bock, B., Van Bramer, D., & Peterson, R. (2026). *Environmental
+Footprint Reporting as a Performance Metric in Environmental Data
+Science*. Cambridge Open Engage.
+[doi:10.33774/coe-2026-v69v8](https://doi.org/10.33774/coe-2026-v69v8)
+
+To cite the software itself, use `citation("CodeCarbonR")` in R or the
+“Cite this repository” button on GitHub.
