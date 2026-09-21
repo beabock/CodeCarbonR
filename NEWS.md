@@ -1,3 +1,12 @@
+# CodeCarbonR 0.1.1
+
+- Corrected author metadata: fixed the spelling of Rachel Peterson's
+  surname and the capitalization of Dylan Van Bramer's, and added Rachel's
+  ORCID iD.
+- `citation("CodeCarbonR")` now also lists the accompanying preprint
+  (Bock, Van Bramer & Peterson, 2026, <doi:10.33774/coe-2026-v69v8>).
+- No functional changes to the package.
+
 # CodeCarbonR 0.1.0
 
 ## New features

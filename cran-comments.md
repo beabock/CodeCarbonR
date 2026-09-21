@@ -1,6 +1,17 @@
 # CRAN comments
 
-## Resubmission
+## Update (0.1.0 -> 0.1.1)
+
+This is a metadata-only update; there are no code changes. CodeCarbonR
+0.1.0 was published on 2026-09-05, and I'm aware this update follows it
+sooner than the usual 1-2 months. I'm submitting it now because
+0.1.0 misspelled a co-author's surname in `Authors@R` ("Paterson" instead
+of "Peterson") and capitalized another's incorrectly ("van Bramer" instead
+of "Van Bramer"), and the package's authors are cited in a preprint
+that names them in the corrected form. This update also adds a missing ORCID iD
+for one author and lists the accompanying preprint in `inst/CITATION`.
+
+## Resubmission (of 0.1.0, for the record)
 
 CRAN's incoming pretest (2026-08-21) flagged 1 NOTE on Windows and 2 on
 Debian:
@@ -21,11 +32,7 @@ Debian:
   deterministically is preferable to relying on a reviewer accepting an
   explanation for something a one-line skip resolves cleanly.
 
-## Submission
-
-This is a new package. The previous submission attempt was blocked by
-CRAN's automated incoming pretest before reaching human review; see
-Resubmission above for what changed.
+## About the package
 
 CodeCarbonR wraps the Python `codecarbon` package (via `reticulate`) to
 measure the energy consumption and estimated carbon emissions of R code.
@@ -73,4 +80,4 @@ release process).
 
 ## Downstream dependencies
 
-This is a new package; there are no reverse dependencies.
+There are no reverse dependencies.
