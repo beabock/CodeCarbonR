@@ -2,6 +2,8 @@
 
 ## CodeCarbonR 0.1.1
 
+CRAN release: 2026-09-21
+
 - Corrected author metadata: fixed the spelling of Rachel Peterson’s
   surname and the capitalization of Dylan Van Bramer’s, and added
   Rachel’s ORCID iD.
