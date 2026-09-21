@@ -85,11 +85,17 @@ test_that("restarting one tracker instance does not isolate per-cycle emissions 
   # relationship, so it survives codecarbon changing *how* it's broken
   # (see CI failure on codecarbon 3.3.0, 2026-08, for why the original
   # exact-equality version of this test wasn't robust to that). If this
-  # ever fails outright -- second < first, or duration stops climbing --
-  # that's the meaningful signal: codecarbon may have actually fixed
-  # instance reuse, and carbon_tracker()'s docs (R/tracker.R) and the
-  # multi-step test case (comparison/06_multi_step_tracking) should be
-  # revisited.
+  # ever fails outright -- second < first -- that's the meaningful signal:
+  # codecarbon may have actually fixed instance reuse, and carbon_tracker()'s
+  # docs (R/tracker.R) and the multi-step test case
+  # (comparison/06_multi_step_tracking) should be revisited.
+  #
+  # `duration` is deliberately NOT asserted on. codecarbon 3.3.1 (2026-09)
+  # started reporting a per-cycle duration on restart (~1s for each of two
+  # ~1s cycles), so "second duration > first duration" became a coin flip
+  # and failed CI on macOS/Linux. Energy/emissions on 3.3.1 are still
+  # cumulative since the original start (~2x the first reading), i.e. still
+  # not an isolated measurement -- the invariant this test pins.
   tracker <- carbon_tracker(
     country_iso_code = "USA", measure_power_secs = 1, log_level = "error",
     output_dir = tempdir()
@@ -105,7 +111,6 @@ test_that("restarting one tracker instance does not isolate per-cycle emissions 
 
   expect_true(second$emissions >= first$emissions)
   expect_true(second$energy_consumed >= first$energy_consumed)
-  expect_true(second$duration > first$duration)
 })
 
 test_that("one tracker per phase does isolate per-cycle emissions", {
