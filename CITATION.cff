@@ -14,9 +14,9 @@ authors:
 type: software
 license: MIT
 repository-code: "https://github.com/beabock/CodeCarbonR"
-version: 0.1.0
-date-released: "2026-08-21"
-doi: 10.5281/zenodo.22049426
+version: 0.1.1
+date-released: "2026-09-22"
+doi: 10.5281/zenodo.22883954
 identifiers:
   - type: doi
     value: 10.5281/zenodo.22049425
